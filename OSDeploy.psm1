@@ -1,13 +1,14 @@
-﻿<#	
-	===========================================================================
-	 Author:   		David Segura
-	 Organization: 	OSDeploy.com
-	 Filename:     	OSDeploy.psm1
-	 Version:   	18.06.15
-	 --------------------------------------------------------------------------
-	 Module Name: OSDeploy
-	===========================================================================
-#>
-. $PSScriptRoot\Copy-IsoToUsb.ps1
-. $PSScriptRoot\New-CAB.ps1
-. $PSScriptRoot\Show-RegistryXML.ps1
+﻿#===================================================================================================
+#   Import Functions
+#   https://github.com/RamblingCookieMonster/PSStackExchange/blob/master/PSStackExchange/PSStackExchange.psm1
+#===================================================================================================
+$OSDPublicFunctions  = @( Get-ChildItem -Path $PSScriptRoot\Public\*.ps1 -ErrorAction SilentlyContinue )
+$OSDPrivateFunctions = @( Get-ChildItem -Path $PSScriptRoot\Private\*.ps1 -ErrorAction SilentlyContinue )
+
+foreach ($Import in @($OSDPublicFunctions + $OSDPrivateFunctions)) {
+    Try {. $Import.FullName}
+    Catch {Write-Error -Message "Failed to import function $($Import.FullName): $_"}
+}
+
+Export-ModuleMember -Function $OSDPublicFunctions.BaseName
+#===================================================================================================
