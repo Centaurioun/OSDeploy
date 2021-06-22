@@ -4,7 +4,7 @@
 ModuleToProcess = 'OSDeploy.psm1'
 
 # Version number of this module.
-ModuleVersion = '21.6.19.1'
+ModuleVersion = '21.6.22.1'
 
 # Supported PSEditions
 # CompatiblePSEditions = @()
