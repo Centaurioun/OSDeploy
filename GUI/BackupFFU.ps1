@@ -37,7 +37,7 @@ $Global:MyScriptDir = [System.IO.Path]::GetDirectoryName($myInvocation.MyCommand
 #=======================================================================
 #   Console Title
 #=======================================================================
-#$host.ui.RawUI.WindowTitle = "CaptureFFU"
+$host.ui.RawUI.WindowTitle = "Backup-FFU"
 #=======================================================================
 #   Test-InWinPE
 #=======================================================================
@@ -76,7 +76,7 @@ function LoadForm {
 #=======================================================================
 #   LoadForm
 #=======================================================================
-LoadForm -XamlPath (Join-Path $Global:MyScriptDir 'CaptureFFU.xaml')
+LoadForm -XamlPath (Join-Path $Global:MyScriptDir 'BackupFFU.xaml')
 #=======================================================================
 #   Variables
 #=======================================================================
@@ -86,7 +86,7 @@ $Global:SerialNumber = Get-MyBiosSerialNumber -Brief
 #=======================================================================
 #   Title
 #=======================================================================
-#$TitleLabel.Content = 'CaptureFFU'
+#$TitleLabel.Content = 'BackupFFU'
 #=======================================================================
 #   CaptureDrives
 #=======================================================================
@@ -149,7 +149,7 @@ function Get-StorageDriveDetails {
         foreach ($DestinationDrive in $Global:DestinationDrives) {
             if ($DestinationDrive.DriveLetter -gt 0) {
                 $ImageFileName = "disk$Global:DiskNumber"
-                $ImageFile = "$($DestinationDrive.DriveLetter):\CaptureFFU\$Global:Manufacturer\$Global:Model\$($Global:SerialNumber)_$($ImageFileName).ffu"
+                $ImageFile = "$($DestinationDrive.DriveLetter):\BackupFFU\$Global:Manufacturer\$Global:Model\$($Global:SerialNumber)_$($ImageFileName).ffu"
                 $ImageFileComboBox.Items.Add($ImageFile) | Out-Null
             }
         }
@@ -173,6 +173,30 @@ $CaptureDriveComboBox.add_SelectionChanged({
     Get-CaptureDriveDetails
     $ImageFileComboBox.Items.Clear()
     Get-StorageDriveDetails
+})
+#=======================================================================
+#   Docs
+#=======================================================================
+$DocsComboBox.Items.Add('MSDocs: Capture and Apply Windows Full Flash Update Images') | Out-Null
+$DocsComboBox.Items.Add('MSDocs: WIM vs. VHD vs. FFU: Comparing image file formats') | Out-Null
+$DocsComboBox.Items.Add('TenForums: Clone and Deploy using FFU Image') | Out-Null
+
+$DocsComboBox.SelectedValue = 'MSDocs: Capture and Apply Windows Full Flash Update Images'
+
+$DocsButton.add_Click( {
+    Write-Host -ForegroundColor Cyan "Run: $($DocsComboBox.SelectedValue)"
+
+    if ($DocsComboBox.SelectedValue -eq 'MSDocs: Capture and Apply Windows Full Flash Update Images') {Start-Process 'https://docs.microsoft.com/en-us/windows-hardware/manufacture/desktop/deploy-windows-using-full-flash-update--ffu'}
+    elseif ($DocsComboBox.SelectedValue -eq 'MSDocs: WIM vs. VHD vs. FFU: comparing image file formats') {Start-Process 'https://docs.microsoft.com/en-us/windows-hardware/manufacture/desktop/wim-vs-ffu-image-file-formats'}
+    elseif ($DocsComboBox.SelectedValue -eq 'TenForums: Clone and Deploy using FFU Image') {Start-Process 'https://www.tenforums.com/tutorials/133132-dism-clone-deploy-using-ffu-image.html'}
+    else {
+        try {
+            Start-Process $DocsComboBox.SelectedValue
+        }
+        catch {
+            Write-Warning "Could not execute $($DocsComboBox.SelectedValue)"
+        }
+    }
 })
 #=======================================================================
 #   GoButton
@@ -211,7 +235,7 @@ $GoButton.add_Click({
         #   Verify WinPE
         #=======================================================================
         if (-NOT (Test-InWinPE)) {
-            Write-Warning "CaptureFFU must be run in WinPE"
+            Write-Warning "BackupFFU must be run in WinPE"
             PAUSE
             Break
         }
