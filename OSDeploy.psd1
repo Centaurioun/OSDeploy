@@ -4,7 +4,7 @@
 ModuleToProcess = 'OSDeploy.psm1'
 
 # Version number of this module.
-ModuleVersion = '19.9.24.0'
+ModuleVersion = '21.6.19.1'
 
 # Supported PSEditions
 # CompatiblePSEditions = @()
@@ -19,7 +19,7 @@ Author = 'David Segura'
 CompanyName = 'OSDeploy'
 
 # Copyright statement for this module
-Copyright = '(c) 2019 David Segura osdeploy.com. All rights reserved.'
+Copyright = '(c) 2021 David Segura osdeploy.com. All rights reserved.'
 
 # Description of the functionality provided by this module
 Description = @'
@@ -47,7 +47,9 @@ OSDeploy PowerShell Module is a collection of Random
 # ProcessorArchitecture = ''
 
 # Modules that must be imported into the global environment prior to importing this module
-# RequiredModules = @()
+RequiredModules = @(
+    @{ModuleName = 'OSD'; ModuleVersion = '21.6.22.1'; Guid = '9fe5b9b6-0224-4d87-9018-a8978529f6f5'}
+)
 
 # Assemblies that must be loaded prior to importing this module
 # RequiredAssemblies = @()
@@ -66,10 +68,11 @@ OSDeploy PowerShell Module is a collection of Random
 
 # Functions to export from this module
 FunctionsToExport = 'Copy-IsoToUsb',
+                    'Export-OSDCertificatesAsReg',
                     'Get-DownLinks',
                     'New-CAB',
                     'Show-RegistryXML',
-                    'Export-OSDCertificatesAsReg'
+                    'Backup-FFU'
 
 # Cmdlets to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no cmdlets to export.
 CmdletsToExport = @()
