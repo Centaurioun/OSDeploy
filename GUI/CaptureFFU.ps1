@@ -188,10 +188,12 @@ SizeRemaining: $($DestinationDrive.SizeRemaining)
 $CaptureDriveComboBox.add_SelectionChanged({
     Set-CaptureDriveComboBox
     Set-ImageFileComboBox
+    Set-DismCommandText
 })
 $CaptureDriveComboBox.add_DropDownClosed({
     Set-CaptureDriveComboBox
     Set-ImageFileComboBox
+    Set-DismCommandText
 })
 #=======================================================================
 #   ImageFileComboBox Events
