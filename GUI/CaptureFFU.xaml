@@ -4,7 +4,7 @@
     xmlns:Controls = "clr-namespace:MahApps.Metro.Controls;assembly=MahApps.Metro"
 
     Title = "OSDeploy"
-    Height = "390"
+    Height = "400"
     Width = "600"
     Background = "#EDF4FE"
 
@@ -77,20 +77,21 @@
         <Grid.RowDefinitions>
             <RowDefinition Height = "50"/>
             <RowDefinition Height = "50"/>
+            <RowDefinition Height = "30"/>
             <RowDefinition Height = "50"/>
-            <RowDefinition Height = "100"/>
-            <RowDefinition Height = "80"/>
+            <RowDefinition Height = "110"/>
+            <RowDefinition Height = "50"/>
         </Grid.RowDefinitions>
 
         <StackPanel Grid.Column = "0" Grid.Row = "0" Grid.ColumnSpan = "5" VerticalAlignment = "Top">
             <Label Name = "TitleLabel"
-            Content = "Backup-FFU"
+            Content = "Start-CaptureFFU"
             FontSize = "30"
             HorizontalAlignment = "Center"
             />
         </StackPanel>
 
-        <StackPanel Grid.Column = "1" Grid.Row = "1" VerticalAlignment = "Bottom" HorizontalAlignment = "Right" Margin = "5">
+        <StackPanel Grid.Column = "1" Grid.Row = "1" HorizontalAlignment = "Right" VerticalAlignment = "Center" Margin = "5">
             <Label Name = "CaptureDriveLabel"
             Content = "CaptureDrive:"
             FontSize = "15"
@@ -109,7 +110,14 @@
             />
         </StackPanel>
 
-        <StackPanel Grid.Column = "1" Grid.Row = "2" VerticalAlignment = "Bottom" HorizontalAlignment = "Right" Margin = "5">
+        <StackPanel Grid.Column = "2" Grid.Row = "2" HorizontalAlignment = "Left" VerticalAlignment = "Top">
+            <Label Name = "CaptureDriveDetails"
+            FontSize = "14"
+            HorizontalAlignment = "Left"
+            />
+        </StackPanel>
+
+        <StackPanel Grid.Column = "1" Grid.Row = "3" HorizontalAlignment = "Right" VerticalAlignment = "Center" Margin = "5">
             <Label Name = "ImageFileLabel"
             Content = "ImageFile:"
             FontSize = "15"
@@ -118,61 +126,47 @@
             />
         </StackPanel>
 
-        <StackPanel Grid.Column = "2" Grid.Row = "2" Grid.ColumnSpan = "2" VerticalAlignment = "Center">
+        <StackPanel Grid.Column = "2" Grid.Row = "3" Grid.ColumnSpan = "2" VerticalAlignment = "Center">
             <ComboBox Name = "ImageFileComboBox"
             BorderThickness = "2"
             FontFamily = "Segoe UI"
             FontSize = "14"
             Height = "40"
             IsEditable = "True"
+            SelectedIndex = "0"
             VerticalAlignment = "Center"
             Width = "425"
             />
         </StackPanel>
 
-        <StackPanel Grid.Column = "2" Grid.Row = "3" VerticalAlignment = "Top">
-            <Label Name = "CaptureDriveDetails"
-            FontSize = "14"
-            HorizontalAlignment = "Left"
+        <StackPanel Grid.Column = "1" Grid.Row = "4" HorizontalAlignment = "Right" VerticalAlignment = "Center" Margin = "5">
+            <Label Name = "DismCommandLabel"
+            Content = "Command:"
+            FontSize = "15"
+            FontWeight = "Bold"
+            VerticalAlignment = "Bottom"
             />
         </StackPanel>
-        <StackPanel Grid.Column = "2" Grid.Row = "3" VerticalAlignment = "Top">
-            <Label Name = "DestinationDetails"
+        <StackPanel Grid.Column = "2" Grid.Row = "4" Grid.ColumnSpan = "2" VerticalAlignment = "Center">
+            <TextBox Name = "DismCommand"
             FontSize = "14"
-            HorizontalAlignment = "Left"
+            Height = "90"
+            HorizontalAlignment = "Center"
+            TextWrapping = "Wrap"
+            Width = "425"
             />
         </StackPanel>
 
-        <StackPanel Grid.Column = "3" Grid.Row = "3" VerticalAlignment = "Bottom">
-            <Button Name = "GoButton"
+        <StackPanel Grid.Column = "2" Grid.Row = "5" HorizontalAlignment = "Left" VerticalAlignment = "Bottom">
+            <Button Name = "RunButton"
             Background = "#0067C0"
-            Content = "Capture"
+            Content = "Run"
             FontSize = "15"
             FontWeight = "Normal"
             Foreground = "White"
             Height = "40"
             Width = "125"
             />
-        </StackPanel>
-		<StackPanel Grid.Column = "1" Grid.Row = "4" Grid.ColumnSpan = "3" VerticalAlignment = "Bottom">
-            <StackPanel x:Name = "StackPanelDocs" Orientation = "Horizontal" HorizontalAlignment = "Right" VerticalAlignment = "Center">
-                <Button Name = "DocsButton"
-                Content = "Docs"
-                FontSize = "15"
-                FontWeight = "Normal"
-                Height = "40"
-                Width = "60"
-                />
-                <ComboBox
-                Name = "DocsComboBox"
-                BorderThickness = "2"
-                FontSize = "15"
-                FontWeight = "Normal"
-                Foreground = "Black"
-                Height = "40"
-                Width = "480"
-                />
-            </StackPanel>
         </StackPanel>
     </Grid>
 </Controls:MetroWindow>

@@ -3,12 +3,6 @@
 #=======================================================================
 #Clear-Host
 #=======================================================================
-#	Block
-#=======================================================================
-Block-StandardUser
-Block-WindowsVersionNe10
-Block-PowerShellVersionLt5
-#=======================================================================
 #   PowershellWindow Functions
 #   Hide the PowerShell Window
 #   https://community.spiceworks.com/topic/1710213-hide-a-powershell-console-window-when-running-a-script
@@ -37,7 +31,7 @@ $Global:MyScriptDir = [System.IO.Path]::GetDirectoryName($myInvocation.MyCommand
 #=======================================================================
 #   Console Title
 #=======================================================================
-$host.ui.RawUI.WindowTitle = "Backup-FFU"
+$host.ui.RawUI.WindowTitle = "Start-CaptureFFU"
 #=======================================================================
 #   Test-InWinPE
 #=======================================================================
@@ -76,17 +70,23 @@ function LoadForm {
 #=======================================================================
 #   LoadForm
 #=======================================================================
-LoadForm -XamlPath (Join-Path $Global:MyScriptDir 'BackupFFU.xaml')
+LoadForm -XamlPath (Join-Path $Global:MyScriptDir 'CaptureFFU.xaml')
 #=======================================================================
 #   Variables
 #=======================================================================
 $Global:Manufacturer = Get-MyComputerManufacturer -Brief
 $Global:Model = Get-MyComputerModel -Brief
 $Global:SerialNumber = Get-MyBiosSerialNumber -Brief
+
+$Global:DismDescription = "$Global:Manufacturer $Global:Model $Global:SerialNumber"
+Write-Host -ForegroundColor Cyan "Description:$Global:DismDescription"
+
+$Global:DismCompress = 'Default'
+Write-Host -ForegroundColor Cyan "Compress:$Global:DismCompress"
 #=======================================================================
 #   Title
 #=======================================================================
-#$TitleLabel.Content = 'BackupFFU'
+#$TitleLabel.Content = 'CaptureFFU'
 #=======================================================================
 #   CaptureDrives
 #=======================================================================
@@ -98,7 +98,7 @@ $Global:CaptureDrives = Get-Disk.fixed | Where-Object {$_.IsBoot -eq $false}
 
 # Populate the ComboBox
 $Global:CaptureDrives | foreach {
-    $CaptureDriveComboBox.Items.Add($_.FriendlyName) | Out-Null
+    $CaptureDriveComboBox.Items.Add("Disk $($_.DiskNumber) $($_.BusType) $($_.MediaType) - $($_.FriendlyName)") | Out-Null
     $Global:ArrayOfDiskNumbers += $_.Number
 }
 
@@ -107,40 +107,42 @@ $CaptureDriveDetails.Content = ''
 #Select the first item
 $CaptureDriveComboBox.SelectedIndex = 0
 #=======================================================================
-#   Get-CaptureDriveDetails
+#   Set-CaptureDriveComboBox
 #=======================================================================
-function Get-CaptureDriveDetails {
+function Set-CaptureDriveComboBox {
     $CaptureDrive = Get-Disk.fixed | Where-Object { $_.Number -eq $Global:ArrayOfDiskNumbers[$CaptureDriveComboBox.SelectedIndex] }
     
     # Work out if the size should be in GB or TB
     if ([math]::Round(($CaptureDrive.Size/1TB),2) -lt 1) {
-        $CaptureDriveSize = "$([math]::Round(($CaptureDrive.Size/1000000000),0)) GB"
+        $CaptureDriveSize = "$([math]::Round(($CaptureDrive.Size/1000000000),0))GB"
     }
     else {
-        $CaptureDriveSize = "$([math]::Round(($CaptureDrive.Size/1000000000000),2)) TB"
+        $CaptureDriveSize = "$([math]::Round(($CaptureDrive.Size/1000000000000),2))TB"
     }
 
     $Global:DiskNumber = $CaptureDrive.DiskNumber
 
-$CaptureDriveDetails.Content = @"
-BusType: $($CaptureDrive.BusType)
-MediaType: $($CaptureDrive.MediaType)
-Size: $CaptureDriveSize
-DiskNumber: $Global:DiskNumber
-NumberOfPartitions: $($CaptureDrive.NumberOfPartitions)
-PartitionStyle: $($CaptureDrive.PartitionStyle)
-"@
+    $Global:DismCaptureDrive = "\\.\PhysicalDrive$($Global:DiskNumber)"
+    Write-Host -ForegroundColor Cyan "CaptureDrive: $Global:DismCaptureDrive"
+    
+    $Global:DismName = "disk$($Global:DiskNumber)"
+    Write-Host -ForegroundColor Cyan "Name: $Global:DismName"
 
-    Get-StorageDriveDetails
+$CaptureDriveDetails.Content = @"
+$CaptureDriveSize $($CaptureDrive.PartitionStyle) $($CaptureDrive.NumberOfPartitions) Partitions
+"@
 }
 #=======================================================================
-#   Get-StorageDriveDetails
+#   Set-ImageFileComboBox
 #=======================================================================
-function Get-StorageDriveDetails {
+function Set-ImageFileComboBox {
+
     $Global:DestinationDrives = @()
     $Global:DestinationDrives = Get-Disk.storage | Where-Object {$_.DiskNumber -ne $Global:DiskNumber}
 
     $ImageFile = $null
+    
+    $ImageFileComboBox.Items.Clear()
 
     if (-NOT ($Global:DestinationDrives)) {
         $ImageFileComboBox.IsEnabled = "False"
@@ -149,14 +151,30 @@ function Get-StorageDriveDetails {
         foreach ($DestinationDrive in $Global:DestinationDrives) {
             if ($DestinationDrive.DriveLetter -gt 0) {
                 $ImageFileName = "disk$Global:DiskNumber"
-                $ImageFile = "$($DestinationDrive.DriveLetter):\BackupFFU\$Global:Manufacturer\$Global:Model\$($Global:SerialNumber)_$($ImageFileName).ffu"
+                $ImageFile = "$($DestinationDrive.DriveLetter):\CaptureFFU\$Global:Manufacturer\$Global:Model\$($Global:SerialNumber)_$($ImageFileName).ffu"
                 $ImageFileComboBox.Items.Add($ImageFile) | Out-Null
             }
         }
         $ImageFileComboBox.SelectedIndex = 0
     }
 }
+#=======================================================================
+#   Set-DismCommandText
+#=======================================================================
+function Set-DismCommandText {
+    #Write-Host "Text: $($ImageFileComboBox.Text)"
 
+    $Global:DismImageFile = $ImageFileComboBox.Text
+    if ($Global:DismImageFile -gt 0) {
+        Write-Host -ForegroundColor Cyan "ImageFile: $Global:DismImageFile"
+    }
+    $DismCommand.Text = "Dism.exe /Capture-FFU /ImageFile=`"$Global:DismImageFile`" /CaptureDrive=$Global:DismCaptureDrive /Name:`"$Global:DismName`" /Description:`"$Global:DismDescription`" /Compress:$Global:DismCompress"
+    
+    $ImageFileComboBox.IsEnabled = "True"
+}
+Set-CaptureDriveComboBox
+Set-ImageFileComboBox
+Set-DismCommandText
 <# $DestinationDetails.Content = @"
 DiskNumber: $($DestinationDrive.DiskNumber)
 FileSystemLabel: $($DestinationDrive.FileSystemLabel)
@@ -164,15 +182,39 @@ FileSystem: $($DestinationDrive.FileSystem)
 Size: $($DestinationDrive.Size)
 SizeRemaining: $($DestinationDrive.SizeRemaining)
 "@ #>
-
-Get-CaptureDriveDetails
 #=======================================================================
-#   CaptureDriveComboBox
+#   CaptureDriveComboBox Events
 #=======================================================================
 $CaptureDriveComboBox.add_SelectionChanged({
-    Get-CaptureDriveDetails
-    $ImageFileComboBox.Items.Clear()
-    Get-StorageDriveDetails
+    Set-CaptureDriveComboBox
+    Set-ImageFileComboBox
+})
+$CaptureDriveComboBox.add_DropDownClosed({
+    Set-CaptureDriveComboBox
+    Set-ImageFileComboBox
+})
+#=======================================================================
+#   ImageFileComboBox Events
+#=======================================================================
+$ImageFileComboBox.add_SelectionChanged({
+    #Write-Host -ForegroundColor Magenta "add_SelectionChanged"
+    Set-DismCommandText
+})
+$ImageFileComboBox.add_DropDownClosed({
+    #Write-Host -ForegroundColor Magenta "add_DropDownClosed"
+    Set-DismCommandText
+})
+$ImageFileComboBox.add_IsKeyboardFocusedChanged({
+    #Write-Host -ForegroundColor Magenta "add_IsKeyboardFocusedChanged"
+    Set-DismCommandText
+})
+$ImageFileComboBox.add_IsKeyboardFocusWithinChanged({
+    #Write-Host -ForegroundColor Magenta "add_IsKeyboardFocusWithinChanged"
+    Set-DismCommandText
+})
+$ImageFileComboBox.add_KeyUp({
+    #Write-Host -ForegroundColor Magenta "add_KeyUp"
+    Set-DismCommandText
 })
 #=======================================================================
 #   Docs
@@ -199,56 +241,43 @@ $DocsButton.add_Click( {
     }
 })
 #=======================================================================
-#   GoButton
+#   RunButton
 #=======================================================================
-$GoButton.add_Click({
+$RunButton.add_Click({
 
-    $DismImageFile = $ImageFileComboBox.Text
-    Write-Host -ForegroundColor Cyan "DismImageFile: $DismImageFile"
-
-    if ($null -eq $DismImageFile) {
+    if ($null -eq $Global:DismImageFile) {
         Write-Warning "DismImageFile value is null"
     }
-    elseif ($DismImageFile -eq '') {
+    elseif ($Global:DismImageFile -eq '') {
         Write-Warning "DismImageFile value is nothing"
     }
     else {
-        $ParentDirectory = Split-Path $DismImageFile -Parent -ErrorAction Stop
-
-        $DismCaptureDrive = "\\.\PhysicalDrive$($Global:DiskNumber)"
-        Write-Host -ForegroundColor Cyan "DismCaptureDrive: $DismCaptureDrive"
-    
-        $DismName = "disk$($Global:DiskNumber)"
-        Write-Host -ForegroundColor Cyan "DismName: $DismName"
-    
-        $DismDescription = "$Global:Manufacturer $Global:Model $Global:SerialNumber"
-        Write-Host -ForegroundColor Cyan "DismDescription: $DismDescription"
-    
-        $DismCompress = 'Default'
-        Write-Host -ForegroundColor Cyan "DismCompress: $DismCompress"
+        $ParentDirectory = Split-Path $Global:DismImageFile -Parent -ErrorAction Stop
         
-        Write-Host "DISM.exe /Capture-FFU /ImageFile=`"$DismImageFile`" /CaptureDrive=$DismCaptureDrive /Name:`"$DismName`" /Description:`"$DismDescription`" /Compress:$DismCompress"
+        Write-Host "cmd /k DISM.exe /Capture-FFU /ImageFile=`"$Global:DismImageFile`" /CaptureDrive=$Global:DismCaptureDrive /Name:`"$Global:DismName`" /Description:`"$Global:DismDescription`" /Compress:$Global:DismCompress"
 
         $xamGUI.Close()
-        Show-Powershell
+        #Show-Powershell
         #=======================================================================
         #   Verify WinPE
         #=======================================================================
         if (-NOT (Test-InWinPE)) {
-            Write-Warning "BackupFFU must be run in WinPE"
+            Write-Warning "CaptureFFU must be run in WinPE"
             PAUSE
-            Break
+            #Break
         }
-        #=======================================================================
-        #   Enable High Performance Power Plan
-        #=======================================================================
-        Get-OSDPower -Property High
+        else {
+            #=======================================================================
+            #   Enable High Performance Power Plan
+            #=======================================================================
+            Get-OSDPower -Property High
+        }
         #=======================================================================
         if (!(Test-Path "$ParentDirectory")) {
             Try {New-Item -Path $ParentDirectory -ItemType Directory -Force -ErrorAction Stop}
             Catch {Write-Warning "Destination appears to be Read Only.  Try another Destination Drive"; Break}
         }
-        DISM.exe /Capture-FFU /ImageFile="$DismImageFile" /CaptureDrive=$DismCaptureDrive /Name:"$DismName" /Description:"$DismDescription" /Compress:$DismCompress
+        & cmd /k Dism.exe /Capture-FFU /ImageFile=`"$Global:DismImageFile`" /CaptureDrive=$Global:DismCaptureDrive /Name:`"$Global:DismName`" /Description:`"$Global:DismDescription`" /Compress:$Global:DismCompress
         #Get-WindowsImage -ImagePath $ImageFile
         #=======================================================================
     }
