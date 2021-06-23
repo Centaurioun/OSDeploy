@@ -217,30 +217,6 @@ $ImageFileComboBox.add_KeyUp({
     Set-DismCommandText
 })
 #=======================================================================
-#   Docs
-#=======================================================================
-$DocsComboBox.Items.Add('MSDocs: Capture and Apply Windows Full Flash Update Images') | Out-Null
-$DocsComboBox.Items.Add('MSDocs: WIM vs. VHD vs. FFU: Comparing image file formats') | Out-Null
-$DocsComboBox.Items.Add('TenForums: Clone and Deploy using FFU Image') | Out-Null
-
-$DocsComboBox.SelectedValue = 'MSDocs: Capture and Apply Windows Full Flash Update Images'
-
-$DocsButton.add_Click( {
-    Write-Host -ForegroundColor Cyan "Run: $($DocsComboBox.SelectedValue)"
-
-    if ($DocsComboBox.SelectedValue -eq 'MSDocs: Capture and Apply Windows Full Flash Update Images') {Start-Process 'https://docs.microsoft.com/en-us/windows-hardware/manufacture/desktop/deploy-windows-using-full-flash-update--ffu'}
-    elseif ($DocsComboBox.SelectedValue -eq 'MSDocs: WIM vs. VHD vs. FFU: comparing image file formats') {Start-Process 'https://docs.microsoft.com/en-us/windows-hardware/manufacture/desktop/wim-vs-ffu-image-file-formats'}
-    elseif ($DocsComboBox.SelectedValue -eq 'TenForums: Clone and Deploy using FFU Image') {Start-Process 'https://www.tenforums.com/tutorials/133132-dism-clone-deploy-using-ffu-image.html'}
-    else {
-        try {
-            Start-Process $DocsComboBox.SelectedValue
-        }
-        catch {
-            Write-Warning "Could not execute $($DocsComboBox.SelectedValue)"
-        }
-    }
-})
-#=======================================================================
 #   RunButton
 #=======================================================================
 $RunButton.add_Click({
@@ -254,31 +230,36 @@ $RunButton.add_Click({
     else {
         $ParentDirectory = Split-Path $Global:DismImageFile -Parent -ErrorAction Stop
         
-        Write-Host "cmd /k DISM.exe /Capture-FFU /ImageFile=`"$Global:DismImageFile`" /CaptureDrive=$Global:DismCaptureDrive /Name:`"$Global:DismName`" /Description:`"$Global:DismDescription`" /Compress:$Global:DismCompress"
+        Write-Host "Dism.exe /Capture-FFU /ImageFile=`"$Global:DismImageFile`" /CaptureDrive=$Global:DismCaptureDrive /Name:`"$Global:DismName`" /Description:`"$Global:DismDescription`" /Compress:$Global:DismCompress"
 
         $xamGUI.Close()
-        #Show-Powershell
+        Show-Powershell
         #=======================================================================
-        #   Verify WinPE
+        #   Checks
         #=======================================================================
+        if (Test-Path $Global:DismImageFile) {
+            Write-Warning "ImageFile already exists.  Rename the ImageFile and try again"; Break
+        }
         if (-NOT (Test-InWinPE)) {
             Write-Warning "CaptureFFU must be run in WinPE"
-            PAUSE
-            #Break
+            Break
         }
-        else {
-            #=======================================================================
-            #   Enable High Performance Power Plan
-            #=======================================================================
-            Get-OSDPower -Property High
-        }
+        #=======================================================================
+        #   Create FFU
         #=======================================================================
         if (!(Test-Path "$ParentDirectory")) {
             Try {New-Item -Path $ParentDirectory -ItemType Directory -Force -ErrorAction Stop}
             Catch {Write-Warning "Destination appears to be Read Only.  Try another Destination Drive"; Break}
         }
-        & cmd /k Dism.exe /Capture-FFU /ImageFile=`"$Global:DismImageFile`" /CaptureDrive=$Global:DismCaptureDrive /Name:`"$Global:DismName`" /Description:`"$Global:DismDescription`" /Compress:$Global:DismCompress
-        #Get-WindowsImage -ImagePath $ImageFile
+
+        $CommandLine = "Dism.exe /Capture-FFU /ImageFile=`"$Global:DismImageFile`" /CaptureDrive=$Global:DismCaptureDrive /Name:`"$Global:DismName`" /Description:`"$Global:DismDescription`" /Compress:$Global:DismCompress"
+        Write-Host "CommandLine: $CommandLine"
+        Get-OSDPower -Property High
+        Start-Process PowerShell.exe -Wait -WorkingDirectory $ParentDirectory -ArgumentList '-NoExit','-NoLogo','Dism.exe','/Capture-FFU',"/ImageFile='$Global:DismImageFile'","/CaptureDrive='$Global:DismCaptureDrive'","/Name:'$Global:DismName'","/Description:'$Global:DismDescription'","/Compress:$Global:DismCompress"
+        Get-OSDPower -Property Balanced
+        if (Test-Path $Global:DismImageFile) {
+            Get-WindowsImage -ImagePath $Global:DismImageFile
+        }
         #=======================================================================
     }
 })
