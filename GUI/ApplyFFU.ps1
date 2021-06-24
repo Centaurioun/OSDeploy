@@ -31,7 +31,7 @@ $Global:MyScriptDir = [System.IO.Path]::GetDirectoryName($myInvocation.MyCommand
 #=======================================================================
 #   Console Title
 #=======================================================================
-#$host.ui.RawUI.WindowTitle = "Start-CaptureFFU"
+#$host.ui.RawUI.WindowTitle = "Start-ApplyFFU"
 #=======================================================================
 #   Test-InWinPE
 #=======================================================================
@@ -70,70 +70,54 @@ function LoadForm {
 #=======================================================================
 #   LoadForm
 #=======================================================================
-LoadForm -XamlPath (Join-Path $Global:MyScriptDir 'CaptureFFU.xaml')
+LoadForm -XamlPath (Join-Path $Global:MyScriptDir 'ApplyFFU.xaml')
 #=======================================================================
 #   Title
 #=======================================================================
-$TitleLabel.Content = 'Start-CaptureFFU'
+$TitleLabel.Content = 'Start-ApplyFFU'
 #=======================================================================
-#   Variables
-#=======================================================================
-$Global:Manufacturer = Get-MyComputerManufacturer -Brief
-$Global:Model = Get-MyComputerModel -Brief
-$Global:SerialNumber = Get-MyBiosSerialNumber -Brief
-
-$Global:DismDescription = "$Global:Manufacturer $Global:Model $Global:SerialNumber"
-Write-Host -ForegroundColor Cyan "Description:$Global:DismDescription"
-
-$Global:DismCompress = 'Default'
-Write-Host -ForegroundColor Cyan "Compress:$Global:DismCompress"
-#=======================================================================
-#   Title
-#=======================================================================
-#$TitleLabel.Content = 'CaptureFFU'
-#=======================================================================
-#   CaptureDrives
+#   ApplyDrives
 #=======================================================================
 # Create empty array of hard disk numbers
 $Global:ArrayOfDiskNumbers = @()
 
-#Get all the CaptureDrives
-$Global:CaptureDrives = Get-Disk.fixed | Where-Object {$_.IsBoot -eq $false}
+#Get all the ApplyDrives
+$Global:ApplyDrives = Get-Disk.fixed | Where-Object {$_.IsBoot -eq $false}
 
 # Populate the ComboBox
-$Global:CaptureDrives | foreach {
-    $CaptureDriveComboBox.Items.Add("Disk $($_.DiskNumber) $($_.BusType) $($_.MediaType) - $($_.FriendlyName)") | Out-Null
+$Global:ApplyDrives | foreach {
+    $ApplyDriveComboBox.Items.Add("Disk $($_.DiskNumber) $($_.BusType) $($_.MediaType) - $($_.FriendlyName)") | Out-Null
     $Global:ArrayOfDiskNumbers += $_.Number
 }
 
-$CaptureDriveDetails.Content = ''
+$ApplyDriveDetails.Content = ''
 
 #Select the first item
-$CaptureDriveComboBox.SelectedIndex = 0
+$ApplyDriveComboBox.SelectedIndex = 0
 #=======================================================================
-#   Set-CaptureDriveComboBox
+#   Set-ApplyDriveComboBox
 #=======================================================================
-function Set-CaptureDriveComboBox {
-    $CaptureDrive = Get-Disk.fixed | Where-Object { $_.Number -eq $Global:ArrayOfDiskNumbers[$CaptureDriveComboBox.SelectedIndex] }
+function Set-ApplyDriveComboBox {
+    $ApplyDrive = Get-Disk.fixed | Where-Object { $_.Number -eq $Global:ArrayOfDiskNumbers[$ApplyDriveComboBox.SelectedIndex] }
     
     # Work out if the size should be in GB or TB
-    if ([math]::Round(($CaptureDrive.Size/1TB),2) -lt 1) {
-        $CaptureDriveSize = "$([math]::Round(($CaptureDrive.Size/1000000000),0))GB"
+    if ([math]::Round(($ApplyDrive.Size/1TB),2) -lt 1) {
+        $ApplyDriveSize = "$([math]::Round(($ApplyDrive.Size/1000000000),0))GB"
     }
     else {
-        $CaptureDriveSize = "$([math]::Round(($CaptureDrive.Size/1000000000000),2))TB"
+        $ApplyDriveSize = "$([math]::Round(($ApplyDrive.Size/1000000000000),2))TB"
     }
 
-    $Global:DiskNumber = $CaptureDrive.DiskNumber
+    $Global:DiskNumber = $ApplyDrive.DiskNumber
 
-    $Global:DismCaptureDrive = "\\.\PhysicalDrive$($Global:DiskNumber)"
-    Write-Host -ForegroundColor Cyan "CaptureDrive: $Global:DismCaptureDrive"
+    $Global:DismApplyDrive = "\\.\PhysicalDrive$($Global:DiskNumber)"
+    Write-Host -ForegroundColor Cyan "ApplyDrive: $Global:DismApplyDrive"
     
     $Global:DismName = "disk$($Global:DiskNumber)"
     Write-Host -ForegroundColor Cyan "Name: $Global:DismName"
 
-$CaptureDriveDetails.Content = @"
-$CaptureDriveSize $($CaptureDrive.PartitionStyle) $($CaptureDrive.NumberOfPartitions) Partitions
+$ApplyDriveDetails.Content = @"
+$ApplyDriveSize $($ApplyDrive.PartitionStyle) $($ApplyDrive.NumberOfPartitions) Partitions
 "@
 }
 #=======================================================================
@@ -144,24 +128,26 @@ function Set-ImageFileComboBox {
     $Global:DestinationDrives = @()
     $Global:DestinationDrives = Get-Disk.storage | Where-Object {$_.DiskNumber -ne $Global:DiskNumber}
 
-    $ImageFile = $null
-    
     $ImageFileComboBox.Items.Clear()
+
+    $ImageFiles = @()
 
     if (-NOT ($Global:DestinationDrives)) {
         $ImageFileComboBox.IsEnabled = "False"
-        $RunButton.IsEnabled = "False"
     }
     else {
-        $RunButton.IsEnabled = "True"
         foreach ($DestinationDrive in $Global:DestinationDrives) {
-            if ($DestinationDrive.DriveLetter -gt 0) {
-                $ImageFileName = "disk$Global:DiskNumber"
-                $ImageFile = "$($DestinationDrive.DriveLetter):\CaptureFFU\$Global:Manufacturer\$Global:Model\$($Global:SerialNumber)_$($ImageFileName).ffu"
-                $ImageFileComboBox.Items.Add($ImageFile) | Out-Null
+            if (Test-Path "$($DestinationDrive.DriveLetter):\CaptureFFU") {
+                $ImageFiles += Get-ChildItem "$($DestinationDrive.DriveLetter):\CaptureFFU" -Include *.ffu -File -Recurse -Force -ErrorAction Ignore | Select-Object -ExpandProperty FullName
             }
         }
-        $ImageFileComboBox.SelectedIndex = 0
+
+        if ($ImageFiles) {
+            foreach ($Item in $ImageFiles) {
+                $ImageFileComboBox.Items.Add($Item) | Out-Null
+            }
+            $ImageFileComboBox.SelectedIndex = 0
+        }
     }
 }
 #=======================================================================
@@ -174,11 +160,11 @@ function Set-DismCommandText {
     if ($Global:DismImageFile -gt 0) {
         Write-Host -ForegroundColor Cyan "ImageFile: $Global:DismImageFile"
     }
-    $DismCommand.Text = "Dism.exe /Capture-FFU /ImageFile=`"$Global:DismImageFile`" /CaptureDrive=$Global:DismCaptureDrive /Name:`"$Global:DismName`" /Description:`"$Global:DismDescription`" /Compress:$Global:DismCompress"
+    $DismCommand.Text = "Dism.exe /Apply-FFU /ImageFile=`"$Global:DismImageFile`" /ApplyDrive=$Global:DismApplyDrive"
     
     $ImageFileComboBox.IsEnabled = "True"
 }
-Set-CaptureDriveComboBox
+Set-ApplyDriveComboBox
 Set-ImageFileComboBox
 Set-DismCommandText
 <# $DestinationDetails.Content = @"
@@ -189,15 +175,15 @@ Size: $($DestinationDrive.Size)
 SizeRemaining: $($DestinationDrive.SizeRemaining)
 "@ #>
 #=======================================================================
-#   CaptureDriveComboBox Events
+#   ApplyDriveComboBox Events
 #=======================================================================
-$CaptureDriveComboBox.add_SelectionChanged({
-    Set-CaptureDriveComboBox
+$ApplyDriveComboBox.add_SelectionChanged({
+    Set-ApplyDriveComboBox
     Set-ImageFileComboBox
     Set-DismCommandText
 })
-$CaptureDriveComboBox.add_DropDownClosed({
-    Set-CaptureDriveComboBox
+$ApplyDriveComboBox.add_DropDownClosed({
+    Set-ApplyDriveComboBox
     Set-ImageFileComboBox
     Set-DismCommandText
 })
@@ -238,32 +224,24 @@ $RunButton.add_Click({
     else {
         $ParentDirectory = Split-Path $Global:DismImageFile -Parent -ErrorAction Stop
         
-        Write-Host "Dism.exe /Capture-FFU /ImageFile=`"$Global:DismImageFile`" /CaptureDrive=$Global:DismCaptureDrive /Name:`"$Global:DismName`" /Description:`"$Global:DismDescription`" /Compress:$Global:DismCompress"
+        Write-Host "Dism.exe /Apply-FFU /ImageFile=`"$Global:DismImageFile`" /ApplyDrive=$Global:DismApplyDrive"
 
         $xamGUI.Close()
         Show-Powershell
         #=======================================================================
         #   Checks
         #=======================================================================
-        if (Test-Path $Global:DismImageFile) {
-            Write-Warning "ImageFile already exists.  Rename the ImageFile and try again"; Break
-        }
         if (-NOT (Test-InWinPE)) {
-            Write-Warning "CaptureFFU must be run in WinPE"
+            Write-Warning "ApplyFFU must be run in WinPE"
             Break
         }
         #=======================================================================
         #   Create FFU
         #=======================================================================
-        if (!(Test-Path "$ParentDirectory")) {
-            Try {New-Item -Path $ParentDirectory -ItemType Directory -Force -ErrorAction Stop}
-            Catch {Write-Warning "Destination appears to be Read Only.  Try another Destination Drive"; Break}
-        }
-
-        $CommandLine = "Dism.exe /Capture-FFU /ImageFile=`"$Global:DismImageFile`" /CaptureDrive=$Global:DismCaptureDrive /Name:`"$Global:DismName`" /Description:`"$Global:DismDescription`" /Compress:$Global:DismCompress"
+        $CommandLine = "Dism.exe /Apply-FFU /ImageFile=`"$Global:DismImageFile`" /ApplyDrive=$Global:DismApplyDrive"
         Write-Host "CommandLine: $CommandLine"
         Get-OSDPower -Property High
-        Start-Process PowerShell.exe -Wait -WorkingDirectory $ParentDirectory -ArgumentList '-NoExit','-NoLogo','Dism.exe','/Capture-FFU',"/ImageFile='$Global:DismImageFile'","/CaptureDrive='$Global:DismCaptureDrive'","/Name:'$Global:DismName'","/Description:'$Global:DismDescription'","/Compress:$Global:DismCompress"
+        Start-Process PowerShell.exe -Wait -WorkingDirectory $ParentDirectory -ArgumentList '-NoExit','-NoLogo','Dism.exe','/Apply-FFU',"/ImageFile='$Global:DismImageFile'","/ApplyDrive='$Global:DismApplyDrive'"
         Get-OSDPower -Property Balanced
         if (Test-Path $Global:DismImageFile) {
             Get-WindowsImage -ImagePath $Global:DismImageFile
