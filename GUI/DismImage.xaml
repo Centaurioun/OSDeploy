@@ -5,7 +5,7 @@
     xmlns:Controls = "clr-namespace:MahApps.Metro.Controls;assembly=MahApps.Metro"
 
     Title = "OSDeploy"
-    Width = "980"
+    Width = "900"
     Height = "670"
     Background = "#004275"
 
@@ -85,32 +85,33 @@
 
 	<Grid>
 		<Grid.ColumnDefinitions>
-			<ColumnDefinition Width="140"/>
+			<ColumnDefinition Width="100"/>
 			<ColumnDefinition Width="*"/>
 			<ColumnDefinition Width="700"/>
 			<ColumnDefinition Width="*"/>
-			<ColumnDefinition Width="140"/>
+			<ColumnDefinition Width="100"/>
 		</Grid.ColumnDefinitions>
 		<Grid.RowDefinitions>
-			<RowDefinition Height="*"/>
 			<RowDefinition Height="65"/>
-			<RowDefinition Height="35"/>
+			<RowDefinition Height="25"/>
 			<RowDefinition Height="*"/>
-			<RowDefinition Height="500"/>
+			<RowDefinition Height="*"/>
+			<RowDefinition Height="530"/>
 			<RowDefinition Height="10"/>
 		</Grid.RowDefinitions>
 
         <!--Title -->
-        <StackPanel Grid.Column = "0" Grid.ColumnSpan = "5" Grid.Row = "1">
+        <StackPanel Grid.Column = "0" Grid.ColumnSpan = "5" Grid.Row = "0" VerticalAlignment = "Top">
             <Label Name = "LabelTitle"
             Content = ""
             FontFamily = "Segoe UI Light" FontSize = "46"
             Foreground = "White"
             HorizontalAlignment = "Center"
+            VerticalAlignment = "Top"
             />
         </StackPanel>
 
-        <StackPanel Grid.Column = "0" Grid.ColumnSpan = "5" Grid.Row = "2">
+        <StackPanel Grid.Column = "0" Grid.ColumnSpan = "5" Grid.Row = "1">
             <Label Name = "LabelSubtitle"
             Content = ""
             FontFamily = "Segoe UI" FontSize = "15"
@@ -119,8 +120,8 @@
             />
         </StackPanel>
 
-        <!-- Left Column -->
-		<StackPanel Grid.Column = "0" Grid.Row = "4" VerticalAlignment = "Bottom">
+        <!-- Top Left Column -->
+        <StackPanel Grid.Column = "0" Grid.Row = "0" VerticalAlignment = "Top">
             <Label Name = "LabelVersion"
             Content = ""
             FontFamily = "Segoe UI" FontSize = "11"
@@ -128,10 +129,10 @@
             HorizontalAlignment = "Left"
             Padding = "10,1,10,0"
             />
-		</StackPanel>
+        </StackPanel>
 
-        <!-- Right Sidebar -->
-		<StackPanel Grid.Column = "4" Grid.Row = "4" VerticalAlignment = "Bottom" HorizontalAlignment = "Right">
+        <!-- Bottom Left Column -->
+		<StackPanel Grid.Column = "0" Grid.ColumnSpan = "3" Grid.Row = "4" VerticalAlignment = "Bottom" HorizontalAlignment = "Left">
 			<Label Name = "LabelManufacturer"
             Content = ""
             FontFamily = "Segoe UI" FontSize = "11"
@@ -155,18 +156,25 @@
 
 			<Label Name = "LabelBiosVersion"
             Content = ""
-            FontFamily = "Segoe UI" FontSize = "11"
-            Foreground = "White"
-            Padding = "10,1,10,0"
-            />
-
-            <Label Name = "LabelTpmVersion"
-            Content = ""
-            FontFamily = "Segoe UI" FontSize = "11"
+            FontFamily = "Segoe UI"
+            FontSize = "11"
             Foreground = "White"
             Padding = "10,1,10,0"
             />
 		</StackPanel>
+
+        <!-- Bottom Right Column -->
+        <StackPanel Grid.Column = "5" Grid.Row = "4" VerticalAlignment = "Bottom" HorizontalAlignment = "Right">
+
+            <Label Name = "LabelTpmVersion"
+            Content = ""
+            FontFamily = "Segoe UI"
+            FontSize = "11"
+            Foreground = "White"
+            HorizontalAlignment = "Right"
+            Padding = "10,1,10,0"
+            />
+        </StackPanel>
 
 		<StackPanel Grid.Column = "2" Grid.Row = "4">
 

@@ -53,7 +53,7 @@ LoadForm -XamlPath (Join-Path $Global:MyScriptDir 'DismImage.xaml')
 #=======================================================================
 $Global:DismImage = @{
     BiosVersion = Get-MyBiosVersion
-    CaptureDrives = Get-Disk.fixed | Where-Object {$_.IsBoot -eq $false}
+    AvailableDisks = Get-Disk.fixed | Where-Object {$_.IsBoot -eq $false}
     Manufacturer = Get-MyComputerManufacturer -Brief
     Model = Get-MyComputerModel -Brief
     RegCurrentVersion = Get-ItemProperty -Path 'HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion'
@@ -82,7 +82,7 @@ $LabelManufacturer.Content = $Global:DismImage.Manufacturer
 $LabelModel.Content = $Global:DismImage.Model
 $LabelSerialNumber.Content = $Global:DismImage.SerialNumber
 $LabelSubtitle.Content = "$($Global:DismImage.ProductName) $($Global:DismImage.DisplayVersion) ($($Global:DismImage.BuildNumber))"
-$LabelBiosVersion.Content = $Global:DismImage.BiosVersion
+$LabelBiosVersion.Content = "BIOS: $($Global:DismImage.BiosVersion)"
 $DismDescriptionTextbox.Text = "$($Global:DismImage.Manufacturer) $($Global:DismImage.Model) $($Global:DismImage.SerialNumber)"
 #=======================================================================
 #   Right Side TPM
@@ -182,15 +182,12 @@ function Start-DismAction {
     if ($DismActionCombobox.SelectedValue -eq '/Apply-FFU') {
         $StartButton.Visibility = "Collapsed"
         $DismCommandTextbox.Text = "Dism.exe /Apply-FFU /?"
-
-
-        $DismSourceLabel.Content = "/ImageFile:"
-        $DismSourceCombobox.Items.Clear()
-        Show-DismSource
+        Start-SourceAction
     }
     if ($DismActionCombobox.SelectedValue -eq '/Capture-FFU') {
         $StartButton.Visibility = "Collapsed"
         $DismCommandTextbox.Text = "Dism.exe /Capture-FFU /?"
+
         $DismCompressLabel.Content = "/Compress:"
         $DismCompressCombobox.Items.Clear()
         $DismCompressCombobox.Items.Add('Default') | Out-Null
@@ -203,16 +200,32 @@ function Start-DismAction {
 #   SourceAction
 #=======================================================================
 function Start-SourceAction {
-    if ($DismActionCombobox.SelectedValue -eq '/Apply-FFU') {
 
+    if ($DismActionCombobox.SelectedValue -eq '/Apply-FFU') {
+        $DismSourceLabel.Content = "/ApplyDrive:"
+        $DismSourceCombobox.Items.Clear()
+        Show-DismSource
+
+        if (!($Global:DismImage.AvailableDisks)) {
+            $DismSourceCombobox.Foreground = "Red"
+            $DismSourceCombobox.IsEnabled = "False"
+            $DismSourceCombobox.SelectedIndex = "0"
+            $DismSourceCombobox.Items.Add("No disks are present that can be applied") | Out-Null
+        }
+        else {
+            $Global:ArrayOfDiskNumbers = @()
+            $Global:DismImage.AvailableDisks | foreach {
+                $DismSourceCombobox.Items.Add("\\.\PhysicalDrive$($_.DiskNumber) [$($_.BusType) $($_.MediaType) - $($_.FriendlyName)]") | Out-Null
+                $Global:ArrayOfDiskNumbers += $_.Number
+            }
+        }
     }
     if ($DismActionCombobox.SelectedValue -eq '/Capture-FFU') {
         $DismSourceLabel.Content = "/CaptureDrive:"
         $DismSourceCombobox.Items.Clear()
-
         Show-DismSource
 
-        if (!($Global:DismImage.CaptureDrives)) {
+        if (!($Global:DismImage.AvailableDisks)) {
             $DismSourceCombobox.Foreground = "Red"
             $DismSourceCombobox.IsEnabled = "False"
             $DismSourceCombobox.SelectedIndex = "0"
@@ -221,7 +234,7 @@ function Start-SourceAction {
         }
         else {
             $Global:ArrayOfDiskNumbers = @()
-            $Global:DismImage.CaptureDrives | foreach {
+            $Global:DismImage.AvailableDisks | foreach {
                 $DismSourceCombobox.Items.Add("\\.\PhysicalDrive$($_.DiskNumber) [$($_.BusType) $($_.MediaType) - $($_.FriendlyName)]") | Out-Null
                 $Global:ArrayOfDiskNumbers += $_.Number
             }
@@ -232,6 +245,8 @@ function Start-SourceAction {
 #   DismSource add_SelectionChanged
 #=======================================================================
 $DismSourceCombobox.add_SelectionChanged({
+    $DismCommandTextbox.Background = "#002846"
+    $DismCommandTextbox.Foreground = "White"
     Start-DestinationAction
 })
 #=======================================================================
@@ -239,7 +254,42 @@ $DismSourceCombobox.add_SelectionChanged({
 #=======================================================================
 function Start-DestinationAction {
     if ($DismActionCombobox.SelectedValue -eq '/Apply-FFU') {
+        #Determine the Selected Disk information
+        $Global:DismImage.SourceDiskNumber = (Get-Disk.fixed | Where-Object { $_.Number -eq $Global:ArrayOfDiskNumbers[$DismSourceCombobox.SelectedIndex] }).DiskNumber
+        $Global:DismImage.PhysicalDrive = "\\.\PhysicalDrive$($Global:DismImage.SourceDiskNumber)"
 
+        $DismCommandTextbox.Text = "Dism.exe /Apply-FFU /ApplyDrive:$($Global:DismImage.PhysicalDrive) /?"
+
+        $DismDestinationLabel.Content = "/ImageFile:"
+        $DismDestinationCombobox.Items.Clear()
+
+        $Global:DismImage.ApplyDrives = @()
+        $Global:DismImage.ApplyDrives = Get-Disk.storage | Where-Object {$_.DiskNumber -ne $($Global:DismImage.SourceDiskNumber)}
+
+        if (!($Global:DismImage.ApplyDrives)) {
+            $DismCommandTextbox.Text = "There are no drives available that can be found that have FFU Images on them"
+            $DismCommandTextbox.Background = "Pink"
+            $DismCommandTextbox.Foreground = "Red"
+        }
+        else {
+            Show-DismDestination
+
+            foreach ($ApplyDrive in $Global:DismImage.ApplyDrives) {
+                if (Test-Path "$($ApplyDrive.DriveLetter):\Images") {
+                    $ApplyImageFiles += Get-ChildItem "$($ApplyDrive.DriveLetter):\Images" -Include *.ffu -File -Recurse -Force -ErrorAction Ignore | Select-Object -ExpandProperty FullName
+                }
+            }
+    
+            if ($ApplyImageFiles) {
+                foreach ($Item in $ApplyImageFiles) {
+                    $DismDestinationCombobox.Items.Add($Item) | Out-Null
+                }
+                $DismDestinationCombobox.SelectedIndex = 0
+            }
+            $DismDestinationCombobox.IsEditable = "True"
+            Set-DismCommandApplyFFU
+            $StartButton.Visibility = "Visible"
+        }
     }
     if ($DismActionCombobox.SelectedValue -eq '/Capture-FFU') {
         #Determine the Selected Disk information
@@ -254,22 +304,21 @@ function Start-DestinationAction {
         $Global:DismImage.ApplyDrives = @()
         $Global:DismImage.ApplyDrives = Get-Disk.storage | Where-Object {$_.DiskNumber -ne $Global:DismImage.SourceDiskNumber}
 
-        Show-DismDestination
 
         if (!($Global:DismImage.ApplyDrives)) {
-            $DismDestinationCombobox.Foreground = "Red"
-            $DismDestinationCombobox.IsEnabled = "False"
-            $DismDestinationCombobox.SelectedIndex = "0"
-            $DismDestinationCombobox.Items.Add("No drives are available to save the FFU file") | Out-Null
+            $DismCommandTextbox.Text = "There are no drives available that can be used to save an FFU ImageFile. Insert a FAST USB Drive or map a Network Drive"
+            $DismCommandTextbox.Background = "Pink"
+            $DismCommandTextbox.Foreground = "Red"
         }
         else {
+            Show-DismDestination
             #Dism Name
             $Global:DismImage.Name = "disk$($Global:DismImage.SourceDiskNumber)"
             $DismNameTextbox.Text = $Global:DismImage.Name
 
             foreach ($DestinationDrive in $Global:DismImage.ApplyDrives) {
                 if ($DestinationDrive.DriveLetter -gt 0) {
-                    $Global:DismImage.ImageFile = "$($DestinationDrive.DriveLetter):\DismImage\$($Global:DismImage.Manufacturer)\$($Global:DismImage.Model)\$($Global:DismImage.SerialNumber)_$($Global:DismImage.Name).ffu"
+                    $Global:DismImage.ImageFile = "$($DestinationDrive.DriveLetter):\Images\$($Global:DismImage.Manufacturer)\$($Global:DismImage.Model)\$($Global:DismImage.SerialNumber)_$($Global:DismImage.Name).ffu"
                     $DismDestinationCombobox.Items.Add($Global:DismImage.ImageFile) | Out-Null
                 }
             }
@@ -285,8 +334,11 @@ function Start-DestinationAction {
     }
 }
 #=======================================================================
-#   Set-DismCommandCaptureFFU
+#   Set-DismCommand
 #=======================================================================
+function Set-DismCommandApplyFFU {
+    $DismCommandTextbox.Text = "Dism.exe /Apply-FFU /ApplyDrive:$($Global:DismImage.PhysicalDrive) /ImageFile=`"$($DismDestinationCombobox.Text)`""
+}
 function Set-DismCommandCaptureFFU {
     $DismCommandTextbox.Text = "Dism.exe /Capture-FFU /CaptureDrive:$($Global:DismImage.PhysicalDrive) /ImageFile=`"$($DismDestinationCombobox.Text)`" /Name:`"$($DismNameTextbox.Text)`" /Description:`"$($DismDescriptionTextbox.Text)`" /Compress:$($DismCompressCombobox.SelectedValue)"
 }
@@ -294,21 +346,44 @@ function Set-DismCommandCaptureFFU {
 #   add_SelectionChanged
 #=======================================================================
 $DismDestinationCombobox.add_SelectionChanged({
+    if ($DismActionCombobox.SelectedValue -eq '/Apply-FFU') {
+        Set-DismCommandApplyFFU
+    }
     if ($DismActionCombobox.SelectedValue -eq '/Capture-FFU') {
         Set-DismCommandCaptureFFU
     }
 })
 $DismDestinationCombobox.add_DropDownClosed({
-    Set-DismCommandCaptureFFU
+    if ($DismActionCombobox.SelectedValue -eq '/Apply-FFU') {
+        Set-DismCommandApplyFFU
+    }
+    if ($DismActionCombobox.SelectedValue -eq '/Capture-FFU') {
+        Set-DismCommandCaptureFFU
+    }
 })
 $DismDestinationCombobox.add_KeyUp({
-    Set-DismCommandCaptureFFU
+    if ($DismActionCombobox.SelectedValue -eq '/Apply-FFU') {
+        Set-DismCommandApplyFFU
+    }
+    if ($DismActionCombobox.SelectedValue -eq '/Capture-FFU') {
+        Set-DismCommandCaptureFFU
+    }
 })
 $DismNameTextbox.add_KeyUp({
-    Set-DismCommandCaptureFFU
+    if ($DismActionCombobox.SelectedValue -eq '/Apply-FFU') {
+        Set-DismCommandApplyFFU
+    }
+    if ($DismActionCombobox.SelectedValue -eq '/Capture-FFU') {
+        Set-DismCommandCaptureFFU
+    }
 })
 $DismDescriptionTextbox.add_KeyUp({
-    Set-DismCommandCaptureFFU
+    if ($DismActionCombobox.SelectedValue -eq '/Apply-FFU') {
+        Set-DismCommandApplyFFU
+    }
+    if ($DismActionCombobox.SelectedValue -eq '/Capture-FFU') {
+        Set-DismCommandCaptureFFU
+    }
 })
 #=======================================================================
 #   StartButton
@@ -319,9 +394,27 @@ $StartButton.add_Click({
     if ($DismActionCombobox.SelectedValue -eq 'Command Line Help') {
         Start-Process PowerShell.exe -ArgumentList '-NoExit','-NoLogo','Dism.exe','/?'
     }
+    else {
+        $xamGUI.Close()
+    }
+    if ($DismActionCombobox.SelectedValue -eq '/Apply-FFU') {
+        $ParentDirectory = Split-Path $DismDestinationCombobox.Text -Parent -ErrorAction Stop
 
-    $xamGUI.Close()
+        if (-NOT (Test-InWinPE)) {
+            Write-Warning "Dism.exe /Apply-FFU requires WinPE"
+            Break
+        }
 
+        $Global:DismParams = @{
+            Dism = '/Apply-FFU'
+            ApplyDrive = $Global:DismImage.PhysicalDrive
+            ImageFile = $DismDestinationCombobox.Text
+        }
+
+        Get-OSDPower -Property High
+        Start-Process PowerShell.exe -Wait -WorkingDirectory $ParentDirectory -ArgumentList '-NoExit','-NoLogo','Dism.exe','/Apply-FFU',"/ApplyDrive:'$($Global:DismParams.ApplyDrive)'","/ImageFile:'$($Global:DismParams.ImageFile)'"
+        Get-OSDPower -Property Balanced
+    }
 
     if ($DismActionCombobox.SelectedValue -eq '/Capture-FFU') {
         $ParentDirectory = Split-Path $DismDestinationCombobox.Text -Parent -ErrorAction Stop
@@ -337,7 +430,7 @@ $StartButton.add_Click({
 
         if (-NOT (Test-InWinPE)) {
             Write-Warning "Dism.exe /Capture-FFU requires WinPE"
-            #Break
+            Break
         }
 
         $Global:DismParams = @{
