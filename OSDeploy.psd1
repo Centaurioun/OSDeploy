@@ -4,7 +4,7 @@
 ModuleToProcess = 'OSDeploy.psm1'
 
 # Version number of this module.
-ModuleVersion = '21.6.23.4'
+ModuleVersion = '21.6.24.1'
 
 # Supported PSEditions
 # CompatiblePSEditions = @()
@@ -73,7 +73,8 @@ FunctionsToExport = 'Copy-IsoToUsb',
                     'New-CAB',
                     'Show-RegistryXML',
                     'Start-ApplyFFU',
-                    'Start-CaptureFFU'
+                    'Start-CaptureFFU',
+                    'Start-DismImage'
 
 # Cmdlets to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no cmdlets to export.
 CmdletsToExport = @()
