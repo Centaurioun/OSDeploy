@@ -201,9 +201,12 @@ $DismActionCombobox.add_SelectionChanged({
     Start-DismAction
 })
 #=======================================================================
-#   DismAction Start-DismAction
+#   Start-DismAction
 #=======================================================================
 function Start-DismAction {
+    $DismCommandTextbox.Background = "#002846"
+    $DismCommandTextbox.Foreground = "White"
+
     if ($DismActionCombobox.SelectedValue -eq 'Command Line Help') {
 
     }
@@ -232,15 +235,12 @@ function Start-DismAction {
 function Start-SourceAction {
 
     if ($DismActionCombobox.SelectedValue -eq '/Apply-FFU') {
-        $DismSourceLabel.Content = "/ApplyDrive:"
         $DismSourceCombobox.Items.Clear()
-        Show-DismSource
 
         if (!($Global:DismImage.AvailableDisks)) {
-            $DismSourceCombobox.Foreground = "Red"
-            $DismSourceCombobox.IsEnabled = "False"
-            $DismSourceCombobox.SelectedIndex = "0"
-            $DismSourceCombobox.Items.Add("No disks are present that can be applied") | Out-Null
+            $DismCommandTextbox.Background = "Pink"
+            $DismCommandTextbox.Foreground = "Red"
+            $DismCommandTextbox.Text = "There are no disks present that can be used as the ApplyDrive.  Make sure you are not booting to the disk that you want to Apply and try again"
         }
         else {
             $Global:ArrayOfDiskNumbers = @()
@@ -248,19 +248,17 @@ function Start-SourceAction {
                 $DismSourceCombobox.Items.Add("\\.\PhysicalDrive$($_.DiskNumber) [$($_.BusType) $($_.MediaType) - $($_.FriendlyName)]") | Out-Null
                 $Global:ArrayOfDiskNumbers += $_.Number
             }
+            $DismSourceLabel.Content = "/ApplyDrive:"
+            Show-DismSource
         }
     }
     if ($DismActionCombobox.SelectedValue -eq '/Capture-FFU') {
-        $DismSourceLabel.Content = "/CaptureDrive:"
         $DismSourceCombobox.Items.Clear()
-        Show-DismSource
 
         if (!($Global:DismImage.AvailableDisks)) {
-            $DismSourceCombobox.Foreground = "Red"
-            $DismSourceCombobox.IsEnabled = "False"
-            $DismSourceCombobox.SelectedIndex = "0"
-            $DismSourceCombobox.Items.Add("No disks are present that can be captured") | Out-Null
-            $DismSourceCombobox.Items.Add("WinPE is required to capture an FFU") | Out-Null
+            $DismCommandTextbox.Background = "Pink"
+            $DismCommandTextbox.Foreground = "Red"
+            $DismCommandTextbox.Text = "There are no disks present that can be used as the CaptureDrive.  Make sure you are not booting to the disk that you want to Capture and try again"
         }
         else {
             $Global:ArrayOfDiskNumbers = @()
@@ -268,6 +266,8 @@ function Start-SourceAction {
                 $DismSourceCombobox.Items.Add("\\.\PhysicalDrive$($_.DiskNumber) [$($_.BusType) $($_.MediaType) - $($_.FriendlyName)]") | Out-Null
                 $Global:ArrayOfDiskNumbers += $_.Number
             }
+            $DismSourceLabel.Content = "/CaptureDrive:"
+            Show-DismSource
         }
     }
 }
@@ -275,14 +275,15 @@ function Start-SourceAction {
 #   DismSource add_SelectionChanged
 #=======================================================================
 $DismSourceCombobox.add_SelectionChanged({
-    $DismCommandTextbox.Background = "#002846"
-    $DismCommandTextbox.Foreground = "White"
     Start-DestinationAction
 })
 #=======================================================================
 #   DismDestination Start-DestinationAction
 #=======================================================================
 function Start-DestinationAction {
+    $DismCommandTextbox.Background = "#002846"
+    $DismCommandTextbox.Foreground = "White"
+
     if ($DismActionCombobox.SelectedValue -eq '/Apply-FFU') {
         #Determine the Selected Disk information
         $Global:DismImage.SourceDiskNumber = (Get-Disk.fixed | Where-Object { $_.Number -eq $Global:ArrayOfDiskNumbers[$DismSourceCombobox.SelectedIndex] }).DiskNumber
@@ -290,18 +291,18 @@ function Start-DestinationAction {
 
         $DismCommandTextbox.Text = "Dism.exe /Apply-FFU /ApplyDrive:$($Global:DismImage.PhysicalDrive) /?"
 
-        $DismDestinationLabel.Content = "/ImageFile:"
         $DismDestinationCombobox.Items.Clear()
 
         $Global:DismImage.ApplyDrives = @()
         $Global:DismImage.ApplyDrives = Get-Disk.storage | Where-Object {$_.DiskNumber -ne $($Global:DismImage.SourceDiskNumber)}
 
         if (!($Global:DismImage.ApplyDrives)) {
-            $DismCommandTextbox.Text = "There are no drives available that can be found that have FFU Images on them"
             $DismCommandTextbox.Background = "Pink"
             $DismCommandTextbox.Foreground = "Red"
+            $DismCommandTextbox.Text = "There are no drives present that can contain an ImageFile.  Make sure you are not Applying on the drive that contains the ImageFile and try again"
         }
         else {
+            $DismDestinationLabel.Content = "/ImageFile:"
             Show-DismDestination
 
             foreach ($ApplyDrive in $Global:DismImage.ApplyDrives) {
@@ -328,19 +329,18 @@ function Start-DestinationAction {
 
         $DismCommandTextbox.Text = "Dism.exe /Capture-FFU /CaptureDrive:$($Global:DismImage.PhysicalDrive) /?"
 
-        $DismDestinationLabel.Content = "/ImageFile:"
         $DismDestinationCombobox.Items.Clear()
 
         $Global:DismImage.ApplyDrives = @()
         $Global:DismImage.ApplyDrives = Get-Disk.storage | Where-Object {$_.DiskNumber -ne $Global:DismImage.SourceDiskNumber}
 
-
         if (!($Global:DismImage.ApplyDrives)) {
-            $DismCommandTextbox.Text = "There are no drives available that can be used to save an FFU ImageFile. Insert a FAST USB Drive or map a Network Drive"
             $DismCommandTextbox.Background = "Pink"
             $DismCommandTextbox.Foreground = "Red"
+            $DismCommandTextbox.Text = "There are no drives present that you can save an ImageFile on.  Insert a FAST USB Drive or map a Network Drive and try again"
         }
         else {
+            $DismDestinationLabel.Content = "/ImageFile:"
             Show-DismDestination
             #Dism Name
             $Global:DismImage.Name = "disk$($Global:DismImage.SourceDiskNumber)"
