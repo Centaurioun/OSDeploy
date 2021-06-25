@@ -6,7 +6,7 @@
 
     Title = "OSDeploy"
     Width = "900"
-    Height = "670"
+    Height = "700"
     Background = "#004275"
 
     BorderBrush = "{DynamicResource AccentColorBrush}"
@@ -84,21 +84,22 @@
 	</Window.Resources>
 
 	<Grid>
-		<Grid.ColumnDefinitions>
-			<ColumnDefinition Width="100"/>
-			<ColumnDefinition Width="*"/>
-			<ColumnDefinition Width="700"/>
-			<ColumnDefinition Width="*"/>
-			<ColumnDefinition Width="100"/>
-		</Grid.ColumnDefinitions>
-		<Grid.RowDefinitions>
-			<RowDefinition Height="65"/>
-			<RowDefinition Height="25"/>
-			<RowDefinition Height="*"/>
-			<RowDefinition Height="*"/>
-			<RowDefinition Height="530"/>
-			<RowDefinition Height="10"/>
-		</Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="100"/>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="700"/>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="100"/>
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="65"/>
+            <RowDefinition Height="25"/>
+            <RowDefinition Height="10"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="10"/>
+            <RowDefinition Height="120"/>
+            <RowDefinition Height="10"/>
+        </Grid.RowDefinitions>
 
         <!--Title -->
         <StackPanel Grid.Column = "0" Grid.ColumnSpan = "5" Grid.Row = "0" VerticalAlignment = "Top">
@@ -111,7 +112,8 @@
             />
         </StackPanel>
 
-        <StackPanel Grid.Column = "0" Grid.ColumnSpan = "5" Grid.Row = "1">
+        <!--SubTitle -->
+        <StackPanel Grid.Column = "0" Grid.ColumnSpan = "5" Grid.Row = "1" VerticalAlignment = "Top">
             <Label Name = "LabelSubtitle"
             Content = ""
             FontFamily = "Segoe UI" FontSize = "15"
@@ -120,8 +122,8 @@
             />
         </StackPanel>
 
-        <!-- Top Left Column -->
-        <StackPanel Grid.Column = "0" Grid.Row = "0" VerticalAlignment = "Top">
+        <!-- Version -->
+        <StackPanel Grid.Column = "0" Grid.ColumnSpan = "1" Grid.Row = "0" VerticalAlignment = "Top">
             <Label Name = "LabelVersion"
             Content = ""
             FontFamily = "Segoe UI" FontSize = "11"
@@ -131,8 +133,8 @@
             />
         </StackPanel>
 
-        <!-- Bottom Left Column -->
-		<StackPanel Grid.Column = "0" Grid.ColumnSpan = "3" Grid.Row = "4" VerticalAlignment = "Bottom" HorizontalAlignment = "Left">
+        <!-- System Information -->
+		<StackPanel Grid.Column = "0" Grid.ColumnSpan = "3" Grid.Row = "5" VerticalAlignment = "Bottom" HorizontalAlignment = "Left">
 			<Label Name = "LabelManufacturer"
             Content = ""
             FontFamily = "Segoe UI" FontSize = "11"
@@ -163,8 +165,8 @@
             />
 		</StackPanel>
 
-        <!-- Bottom Right Column -->
-        <StackPanel Grid.Column = "5" Grid.Row = "4" VerticalAlignment = "Bottom" HorizontalAlignment = "Right">
+        <!-- TPM -->
+        <StackPanel Grid.Column = "5" Grid.ColumnSpan = "1" Grid.Row = "5" VerticalAlignment = "Bottom" HorizontalAlignment = "Right">
 
             <Label Name = "LabelTpmVersion"
             Content = ""
@@ -176,11 +178,10 @@
             />
         </StackPanel>
 
-		<StackPanel Grid.Column = "2" Grid.Row = "4">
-
+        <!-- Dism Action -->
+		<StackPanel Grid.Column = "2" Grid.ColumnSpan = "1" Grid.Row = "3" VerticalAlignment = "Top">
             <!-- DismActionStack -->
-			<StackPanel x:Name = "DismActionStack" Orientation = "Horizontal" HorizontalAlignment = "Right" VerticalAlignment = "Center" Margin = "7">
-				
+			<StackPanel x:Name = "DismActionStack" Orientation = "Horizontal" HorizontalAlignment = "Right" VerticalAlignment = "Top" Margin = "7">
                 <Label Name = "DismActionLabel"
                 Content = ""
                 FontFamily = "Segoe UI" FontSize = "15"
@@ -189,7 +190,6 @@
                 />
 
 				<ComboBox Name = "DismActionCombobox"
-                Background = "#002846"
                 BorderThickness = "2"
                 FontFamily = "Segoe UI"
                 FontSize = "15"
@@ -198,7 +198,7 @@
                 Height = "40"
                 IsEditable = "False"
                 Padding = "8"
-                Width = "580"
+                Width = "575"
                 VerticalAlignment = "Center"
                 />
 			</StackPanel>
@@ -216,14 +216,13 @@
                 />
 
                 <ComboBox Name = "DismSourceCombobox"
-                Background = "#002846"
                 BorderThickness = "2"
                 FontFamily = "Segoe UI"
                 FontSize = "15"
                 FontWeight = "Normal"
                 Foreground = "Black"
                 Height = "40"
-                Width = "580"
+                Width = "575"
                 Padding = "8"
                 VerticalAlignment = "Center"
                 Visibility = "Collapsed"
@@ -243,14 +242,13 @@
                 />
 
                 <ComboBox Name = "DismDestinationCombobox"
-                Background = "#002846"
                 BorderThickness = "2"
                 FontFamily = "Segoe UI"
                 FontSize = "15"
                 FontWeight = "Normal"
                 Foreground = "Black"
                 Height = "40"
-                Width = "580"
+                Width = "575"
                 Padding = "8"
                 VerticalAlignment = "Center"
                 Visibility = "Collapsed"
@@ -277,7 +275,7 @@
                 Foreground = "White"
                 Height = "40"
                 Text = ""
-                Width = "580"
+                Width = "575"
                 Padding = "8"
                 VerticalAlignment = "Center"
                 Visibility = "Collapsed"
@@ -304,7 +302,7 @@
                 Foreground = "White"
                 Height = "40"
                 Text = ""
-                Width = "580"
+                Width = "575"
                 Padding = "8"
                 VerticalAlignment = "Center"
                 Visibility = "Collapsed"
@@ -324,7 +322,6 @@
                 />
 
                 <ComboBox Name = "DismCompressCombobox"
-                Background = "#002846"
                 BorderThickness = "2"
                 FontFamily = "Segoe UI"
                 FontSize = "15"
@@ -332,29 +329,10 @@
                 Foreground = "Black"
                 Height = "40"
                 IsEditable = "False"
-                Width = "580"
+                Width = "575"
                 Padding = "8"
                 VerticalAlignment = "Center"
                 Visibility = "Collapsed"
-                />
-            </StackPanel>
-
-            <!-- DismCommandStack -->
-            <StackPanel x:Name = "DismCommandStack" Orientation = "Horizontal" HorizontalAlignment = "Right" VerticalAlignment = "Center" Margin = "7">
-
-                <TextBox Name = "DismCommandTextbox"
-                Background = "#002846"
-                BorderThickness = "2"
-                FontFamily = "Segoe UI"
-                FontSize = "15"
-                FontWeight = "Normal"
-                Foreground = "White"
-                Height = "110"
-                IsReadOnly = "True"
-                Padding = "8"
-                TextWrapping = "Wrap"
-                Width = "580"
-                VerticalAlignment = "Center"
                 />
             </StackPanel>
 
@@ -366,6 +344,35 @@
                 FontSize = "15"
                 Height = "40"
                 Width = "170"
+                />
+            </StackPanel>
+        </StackPanel>
+
+        <!-- Dism Command -->
+		<StackPanel Grid.Column = "2" Grid.ColumnSpan = "1" Grid.Row = "5" VerticalAlignment = "Bottom">
+            <!-- DismCommandStack -->
+            <StackPanel x:Name = "DismCommandStack" Orientation = "Horizontal" HorizontalAlignment = "Right" VerticalAlignment = "Bottom" Margin = "7">
+
+                <Label Name = "DismCommandLabel"
+                Content = "Command Line:"
+                FontFamily = "Segoe UI"
+                FontSize = "15"
+                Foreground = "White"
+                VerticalAlignment = "Center"
+                />
+                <TextBox Name = "DismCommandTextbox"
+                Background = "#002846"
+                BorderThickness = "2"
+                FontFamily = "Segoe UI"
+                FontSize = "15"
+                FontWeight = "Normal"
+                Foreground = "White"
+                Height = "110"
+                IsReadOnly = "True"
+                Padding = "8"
+                TextWrapping = "Wrap"
+                Width = "575"
+                VerticalAlignment = "Center"
                 />
             </StackPanel>
         </StackPanel>

@@ -104,36 +104,49 @@ else {
     $LabelTpmVersion.Visibility = "Collapsed"
 }
 #=======================================================================
-#   Visibility Functions
+#   Hide
 #=======================================================================
-function Hide-DismCompress {
-    $DismCompressLabel.Visibility = "Collapsed"
-    $DismCompressCombobox.Visibility = "Collapsed"
-}
-function Hide-DismDescription {
-    $DismDescriptionLabel.Visibility = "Collapsed"
-    $DismDescriptionTextbox.Visibility = "Collapsed"
-}
-function Hide-DismDestination {
-    $DismDestinationLabel.Visibility = "Collapsed"
-    $DismDestinationCombobox.Visibility = "Collapsed"
-}
-function Hide-DismName {
-    $DismNameLabel.Visibility = "Collapsed"
-    $DismNameTextbox.Visibility = "Collapsed"
-}
-function Hide-DismSource {
+function Reset-DismSource {
+    $DismSourceLabel.Content = ""
     $DismSourceLabel.Visibility = "Collapsed"
+
+    $DismSourceCombobox.Items.Clear()
     $DismSourceCombobox.Visibility = "Collapsed"
 }
-function Show-DismCompress {
-    $DismCompressLabel.Visibility = "Visible"
-    $DismCompressCombobox.Visibility = "Visible"
+function Reset-DismDestination {
+    $DismDestinationLabel.Content = ""
+    $DismDestinationLabel.Visibility = "Collapsed"
+
+    $DismDestinationCombobox.Items.Clear()
+    $DismDestinationCombobox.Visibility = "Collapsed"
 }
-function Show-DismDescription {
-    $DismDescriptionLabel.Visibility = "Visible"
-    $DismDescriptionTextbox.Visibility = "Visible"
-    $DismDescriptionTextbox.Text = "$($Global:DismImage.Manufacturer) $($Global:DismImage.Model) $($Global:DismImage.SerialNumber)"
+function Reset-DismName {
+    $DismNameLabel.Content = ""
+    $DismNameLabel.Visibility = "Collapsed"
+
+    $DismNameTextbox.Text = ""
+    $DismNameTextbox.Visibility = "Collapsed"
+}
+function Reset-DismDescription {
+    $DismDescriptionLabel.Content = ""
+    $DismDescriptionLabel.Visibility = "Collapsed"
+
+    $DismDescriptionTextbox.Text = ""
+    $DismDescriptionTextbox.Visibility = "Collapsed"
+}
+function Reset-DismCompress {
+    $DismCompressLabel.Content = ""
+    $DismCompressLabel.Visibility = "Collapsed"
+    
+    $DismCompressCombobox.Items.Clear()
+    $DismCompressCombobox.Visibility = "Collapsed"
+}
+#=======================================================================
+#   Show
+#=======================================================================
+function Show-DismSource {
+    $DismSourceLabel.Visibility = "Visible"
+    $DismSourceCombobox.Visibility = "Visible"
 }
 function Show-DismDestination {
     $DismDestinationLabel.Visibility = "Visible"
@@ -143,31 +156,48 @@ function Show-DismName {
     $DismNameLabel.Visibility = "Visible"
     $DismNameTextbox.Visibility = "Visible"
 }
-function Show-DismSource {
-    $DismSourceLabel.Visibility = "Visible"
-    $DismSourceCombobox.Visibility = "Visible"
+function Show-DismDescription {
+    $DismDescriptionLabel.Visibility = "Visible"
+    $DismDescriptionTextbox.Visibility = "Visible"
+    $DismDescriptionTextbox.Text = "$($Global:DismImage.Manufacturer) $($Global:DismImage.Model) $($Global:DismImage.SerialNumber)"
+}
+function Show-DismCompress {
+    $DismCompressLabel.Visibility = "Visible"
+    $DismCompressCombobox.Visibility = "Visible"
 }
 #=======================================================================
 #   DismAction Defaults
 #=======================================================================
-$DismActionLabel.Content = "Dism.exe"
+function Set-DismAction {
+    $DismActionLabel.Content = "Dism.exe"
 
-$DismActionCombobox.Items.Add('Command Line Help') | Out-Null
-$DismActionCombobox.Items.Add('/Apply-FFU') | Out-Null
-$DismActionCombobox.Items.Add('/Capture-FFU') | Out-Null
+    $DismActionCombobox.Items.Clear()
+    $DismActionCombobox.Items.Add('Command Line Help') | Out-Null
+    $DismActionCombobox.Items.Add('/Apply-FFU') | Out-Null
+    $DismActionCombobox.Items.Add('/Capture-FFU') | Out-Null
+    $DismActionCombobox.SelectedIndex = "0"
 
-$DismActionCombobox.SelectedIndex = "0"
-$DismCommandTextbox.Text = "Dism.exe /?"
+    $DismCommandTextbox.Text = "Dism.exe /?"
+    $StartButton.Visibility = "Visible"
+}
+function Reset-DismAction {
+    #Write-Verbose -Verbose 'Start Reset-DismAction'
+    $DismCommandTextbox.Text = "Dism.exe /?"
+    $StartButton.Visibility = "Visible"
+
+    Reset-DismSource
+    Reset-DismDestination
+    Reset-DismName
+    Reset-DismDescription
+    Reset-DismCompress
+    #Write-Verbose -Verbose 'End Reset-DismAction'
+}
+Set-DismAction
 #=======================================================================
 #   DismAction add_SelectionChanged
 #=======================================================================
 $DismActionCombobox.add_SelectionChanged({
-    Hide-DismSource
-    Hide-DismDestination
-    Hide-DismName
-    Hide-DismDescription
-    Hide-DismCompress
-
+    Reset-DismAction
     Start-DismAction
 })
 #=======================================================================
@@ -175,24 +205,24 @@ $DismActionCombobox.add_SelectionChanged({
 #=======================================================================
 function Start-DismAction {
     if ($DismActionCombobox.SelectedValue -eq 'Command Line Help') {
-        $DismCommandTextbox.Text = "Dism.exe /?"
-        $DismSourceCombobox.Items.Clear()
-        $DismDestinationCombobox.Items.Clear()
+
     }
     if ($DismActionCombobox.SelectedValue -eq '/Apply-FFU') {
-        $StartButton.Visibility = "Collapsed"
         $DismCommandTextbox.Text = "Dism.exe /Apply-FFU /?"
+        $StartButton.Visibility = "Collapsed"
         Start-SourceAction
     }
     if ($DismActionCombobox.SelectedValue -eq '/Capture-FFU') {
-        $StartButton.Visibility = "Collapsed"
         $DismCommandTextbox.Text = "Dism.exe /Capture-FFU /?"
+        $StartButton.Visibility = "Collapsed"
 
         $DismCompressLabel.Content = "/Compress:"
+
         $DismCompressCombobox.Items.Clear()
         $DismCompressCombobox.Items.Add('Default') | Out-Null
         $DismCompressCombobox.Items.Add('None') | Out-Null
         $DismCompressCombobox.SelectedIndex = "0"
+        
         Start-SourceAction
     }
 }
@@ -389,65 +419,73 @@ $DismDescriptionTextbox.add_KeyUp({
 #   StartButton
 #=======================================================================
 $StartButton.add_Click({
+    #$xamGUI.Close()
     $Global:DismParams = @{}
-
+    #=======================================================================
+    #   Command Line Help
+    #=======================================================================
     if ($DismActionCombobox.SelectedValue -eq 'Command Line Help') {
         Start-Process PowerShell.exe -ArgumentList '-NoExit','-NoLogo','Dism.exe','/?'
     }
-    else {
-        $xamGUI.Close()
-    }
+    #=======================================================================
+    #   /Apply-FFU
+    #=======================================================================
     if ($DismActionCombobox.SelectedValue -eq '/Apply-FFU') {
         $ParentDirectory = Split-Path $DismDestinationCombobox.Text -Parent -ErrorAction Stop
 
-        if (-NOT (Test-InWinPE)) {
-            Write-Warning "Dism.exe /Apply-FFU requires WinPE"
-            Break
+        if (!(Test-Path $DismDestinationCombobox.Text)) {
+            Write-Warning "ImageFile already exists.  Rename the ImageFile and try again"
         }
-
-        $Global:DismParams = @{
-            Dism = '/Apply-FFU'
-            ApplyDrive = $Global:DismImage.PhysicalDrive
-            ImageFile = $DismDestinationCombobox.Text
+        elseif (!(Test-InWinPE)) {
+            Write-Warning "Dism.exe /Apply-FFU requires WinPE so nothing is going to happen here"
         }
-
-        Get-OSDPower -Property High
-        Start-Process PowerShell.exe -Wait -WorkingDirectory $ParentDirectory -ArgumentList '-NoExit','-NoLogo','Dism.exe','/Apply-FFU',"/ApplyDrive:'$($Global:DismParams.ApplyDrive)'","/ImageFile:'$($Global:DismParams.ImageFile)'"
-        Get-OSDPower -Property Balanced
+        else {
+            $xamGUI.Close()
+            $Global:DismParams = @{
+                Dism = '/Apply-FFU'
+                ApplyDrive = $Global:DismImage.PhysicalDrive
+                ImageFile = $DismDestinationCombobox.Text
+            }
+    
+            Get-OSDPower -Property High
+            Start-Process PowerShell.exe -Wait -WorkingDirectory $ParentDirectory -ArgumentList '-NoExit','-NoLogo','Dism.exe','/Apply-FFU',"/ApplyDrive:'$($Global:DismParams.ApplyDrive)'","/ImageFile:'$($Global:DismParams.ImageFile)'"
+            Get-OSDPower -Property Balanced
+        }
     }
-
+    #=======================================================================
+    #   /Capture-FFU
+    #=======================================================================
     if ($DismActionCombobox.SelectedValue -eq '/Capture-FFU') {
         $ParentDirectory = Split-Path $DismDestinationCombobox.Text -Parent -ErrorAction Stop
+        New-Item -Path $ParentDirectory -ItemType Directory -Force -ErrorAction Ignore | Out-Null
 
         if (Test-Path $DismDestinationCombobox.Text) {
-            Write-Warning "ImageFile already exists.  Rename the ImageFile and try again"; Break
+            Write-Warning "ImageFile already exists.  Rename the ImageFile and try again"
         }
-
-        if (!(Test-Path "$ParentDirectory")) {
-            Try {New-Item -Path $ParentDirectory -ItemType Directory -Force -ErrorAction Stop}
-            Catch {Write-Warning "ImageFile appears to be in a Read Only directory.  Try another Path"; Break}
+        elseif (!(Test-Path "$ParentDirectory")) {
+            Write-Warning "ImageFile appears to be in a Read Only directory or some junk path.  Try another Path"
         }
-
-        if (-NOT (Test-InWinPE)) {
-            Write-Warning "Dism.exe /Capture-FFU requires WinPE"
-            Break
+        elseif (!(Test-InWinPE)) {
+            Write-Warning "Dism.exe /Capture-FFU requires WinPE so nothing is going to happen here"
         }
-
-        $Global:DismParams = @{
-            Dism = '/Capture-FFU'
-            CaptureDrive = $Global:DismImage.PhysicalDrive
-            ImageFile = $DismDestinationCombobox.Text
-            Name = $DismNameTextbox.Text
-            Description = $DismDescriptionTextbox.Text
-            Compress = $DismCompressCombobox.SelectedValue
-        }
-
-        Get-OSDPower -Property High
-        Start-Process PowerShell.exe -Wait -WorkingDirectory $ParentDirectory -ArgumentList '-NoExit','-NoLogo','Dism.exe','/Capture-FFU',"/CaptureDrive:'$($Global:DismParams.CaptureDrive)'","/ImageFile:'$($Global:DismParams.ImageFile)'","/Name:'$($Global:DismParams.Name)'","/Description:'$($Global:DismParams.Description)'","/Compress:$($Global:DismParams.Compress)"
-        Get-OSDPower -Property Balanced
-        
-        if (Test-Path $DismDestinationCombobox.Text) {
-            Get-WindowsImage -ImagePath $DismDestinationCombobox.Text -ErrorAction Ignore
+        else {
+            $xamGUI.Close()
+            $Global:DismParams = @{
+                Dism = '/Capture-FFU'
+                CaptureDrive = $Global:DismImage.PhysicalDrive
+                ImageFile = $DismDestinationCombobox.Text
+                Name = $DismNameTextbox.Text
+                Description = $DismDescriptionTextbox.Text
+                Compress = $DismCompressCombobox.SelectedValue
+            }
+    
+            Get-OSDPower -Property High
+            Start-Process PowerShell.exe -Wait -WorkingDirectory $ParentDirectory -ArgumentList '-NoExit','-NoLogo','Dism.exe','/Capture-FFU',"/CaptureDrive:'$($Global:DismParams.CaptureDrive)'","/ImageFile:'$($Global:DismParams.ImageFile)'","/Name:'$($Global:DismParams.Name)'","/Description:'$($Global:DismParams.Description)'","/Compress:$($Global:DismParams.Compress)"
+            Get-OSDPower -Property Balanced
+            
+            if (Test-Path $DismDestinationCombobox.Text) {
+                Get-WindowsImage -ImagePath $DismDestinationCombobox.Text -ErrorAction Ignore
+            }
         }
     }
 })
