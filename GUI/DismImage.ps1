@@ -233,7 +233,6 @@ function Start-DismAction {
 #   SourceAction
 #=======================================================================
 function Start-SourceAction {
-
     if ($DismActionCombobox.SelectedValue -eq '/Apply-FFU') {
         $DismSourceCombobox.Items.Clear()
 
@@ -304,16 +303,17 @@ function Start-DestinationAction {
         else {
             $DismDestinationLabel.Content = "/ImageFile:"
             Show-DismDestination
+            $ApplyImageFiles = @()
 
             foreach ($ApplyDrive in $Global:DismImage.ApplyDrives) {
                 if (Test-Path "$($ApplyDrive.DriveLetter):\Images") {
-                    $ApplyImageFiles += Get-ChildItem "$($ApplyDrive.DriveLetter):\Images" -Include *.ffu -File -Recurse -Force -ErrorAction Ignore | Select-Object -ExpandProperty FullName
+                    $ApplyImageFiles += Get-ChildItem "$($ApplyDrive.DriveLetter):\Images" -Include *.ffu -File -Recurse -Force -ErrorAction Ignore | Select-Object FullName
                 }
             }
     
             if ($ApplyImageFiles) {
                 foreach ($Item in $ApplyImageFiles) {
-                    $DismDestinationCombobox.Items.Add($Item) | Out-Null
+                    $DismDestinationCombobox.Items.Add($Item.FullName) | Out-Null
                 }
                 $DismDestinationCombobox.SelectedIndex = 0
             }
