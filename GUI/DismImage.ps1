@@ -62,6 +62,16 @@ $Global:DismImage = @{
     Version = Get-Module -Name OSDeploy | Sort-Object -Property Version | Select-Object -ExpandProperty Version -Last 1
 }
 #=======================================================================
+#   RemovedDisks
+#=======================================================================
+$RemovedDisks = @()
+$RemovedDisks = Get-Disk.fixed | Where-Object {$_.IsBoot -eq $true}
+if ($RemovedDisks) {
+    foreach ($Item in $RemovedDisks) {
+        Write-Warning "Removing Disk $($Item.Number) $($Item.FriendlyName) as you cannot capture or apply to a running disk"
+    }
+}
+#=======================================================================
 #   Subtitle
 #=======================================================================
 $Global:DismImage.ProductName = ($Global:DismImage.RegCurrentVersion).ProductName
@@ -114,28 +124,28 @@ function Reset-DismSource {
     $DismSourceCombobox.Visibility = "Collapsed"
 }
 function Reset-DismDestination {
-    $DismDestinationLabel.Content = ""
+    $DismDestinationLabel.Content = "/ImageFile:"
     $DismDestinationLabel.Visibility = "Collapsed"
 
     $DismDestinationCombobox.Items.Clear()
     $DismDestinationCombobox.Visibility = "Collapsed"
 }
 function Reset-DismName {
-    $DismNameLabel.Content = ""
+    $DismNameLabel.Content = "/Name:"
     $DismNameLabel.Visibility = "Collapsed"
 
     $DismNameTextbox.Text = ""
     $DismNameTextbox.Visibility = "Collapsed"
 }
 function Reset-DismDescription {
-    $DismDescriptionLabel.Content = ""
+    $DismDescriptionLabel.Content = "/Description:"
     $DismDescriptionLabel.Visibility = "Collapsed"
 
     $DismDescriptionTextbox.Text = ""
     $DismDescriptionTextbox.Visibility = "Collapsed"
 }
 function Reset-DismCompress {
-    $DismCompressLabel.Content = ""
+    $DismCompressLabel.Content = "/Compress:"
     $DismCompressLabel.Visibility = "Collapsed"
     
     $DismCompressCombobox.Items.Clear()
@@ -211,11 +221,17 @@ function Start-DismAction {
 
     }
     if ($DismActionCombobox.SelectedValue -eq '/Apply-FFU') {
+        Write-Host -ForegroundColor Cyan        'Dism.exe /Apply-FFU /?'
+        Write-Host -ForegroundColor DarkGray    'Applies an .ffu image'
+
         $DismCommandTextbox.Text = "Dism.exe /Apply-FFU /?"
         $StartButton.Visibility = "Collapsed"
         Start-SourceAction
     }
     if ($DismActionCombobox.SelectedValue -eq '/Capture-FFU') {
+        Write-Host -ForegroundColor Cyan        'Dism.exe /Capture-FFU /?'
+        Write-Host -ForegroundColor DarkGray    'Captures a physical disk image into a new FFU file'
+
         $DismCommandTextbox.Text = "Dism.exe /Capture-FFU /?"
         $StartButton.Visibility = "Collapsed"
 
@@ -240,6 +256,8 @@ function Start-SourceAction {
             $DismCommandTextbox.Background = "Pink"
             $DismCommandTextbox.Foreground = "Red"
             $DismCommandTextbox.Text = "There are no disks present that can be used as the ApplyDrive.  Make sure you are not booting to the disk that you want to Apply and try again"
+            Write-Warning 'There are no disks present that can be used as the ApplyDrive'
+            Write-Warning 'Make sure you are not booting to the disk that you want to Apply and try again'
         }
         else {
             $Global:ArrayOfDiskNumbers = @()
@@ -258,6 +276,8 @@ function Start-SourceAction {
             $DismCommandTextbox.Background = "Pink"
             $DismCommandTextbox.Foreground = "Red"
             $DismCommandTextbox.Text = "There are no disks present that can be used as the CaptureDrive.  Make sure you are not booting to the disk that you want to Capture and try again"
+            Write-Warning 'There are no disks present that can be used as the CaptureDrive'
+            Write-Warning 'Make sure you are not booting to the disk that you want to Capture and try again'
         }
         else {
             $Global:ArrayOfDiskNumbers = @()
@@ -299,6 +319,8 @@ function Start-DestinationAction {
             $DismCommandTextbox.Background = "Pink"
             $DismCommandTextbox.Foreground = "Red"
             $DismCommandTextbox.Text = "There are no drives present that can contain an ImageFile.  Make sure you are not Applying on the drive that contains the ImageFile and try again"
+            Write-Warning 'There are no drives present that can contain an ImageFile'
+            Write-Warning 'Make sure you are not Applying on the drive that contains the ImageFile and try again'
         }
         else {
             $DismDestinationLabel.Content = "/ImageFile:"
@@ -338,6 +360,8 @@ function Start-DestinationAction {
             $DismCommandTextbox.Background = "Pink"
             $DismCommandTextbox.Foreground = "Red"
             $DismCommandTextbox.Text = "There are no drives present that you can save an ImageFile on.  Insert a FAST USB Drive or map a Network Drive and try again"
+            Write-Warning 'There are no drives present that you can save an ImageFile on'
+            Write-Warning 'Insert a FAST USB Drive or map a Network Drive and try again'
         }
         else {
             $DismDestinationLabel.Content = "/ImageFile:"
