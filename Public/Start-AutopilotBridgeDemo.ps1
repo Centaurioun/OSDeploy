@@ -41,6 +41,15 @@ function Start-AutopilotBridgeDemo {
         $WindowsUpdate = $true
         $WindowsCapabilityRSAT = $true
         $RemoveAppx = @('CommunicationsApps','OfficeHub','People','Skype','Solitaire','Xbox','ZuneMusic','ZuneVideo')
+        $ProductKey = 'NPPR9-FWDCX-D2C8J-H872K-2YT43'
+    }
+    #=======================================================================
+    #	WindowsCapabilityRSAT
+    #=======================================================================
+    if ($ProductKey) {
+        Write-Host -ForegroundColor DarkGray "========================================================================="
+        Write-Host -ForegroundColor Cyan "$((Get-Date).ToString('yyyy-MM-dd-HHmmss')) Change Product Key"
+        Invoke-Exe changepk.exe /ProductKey $ProductKey
     }
     #=======================================================================
     #	WindowsCapabilityRSAT
@@ -56,7 +65,6 @@ function Start-AutopilotBridgeDemo {
             else {
                 Write-Host -ForegroundColor DarkCyan "$($Item.DisplayName)"
                 $Item | Add-WindowsCapability -Online -ErrorAction Ignore | Out-Null
-                Break
             }
         }
     }
@@ -88,7 +96,7 @@ function Start-AutopilotBridgeDemo {
         }
     }
     if ($DriverUpdate) {
-        Get-WindowsUpdate -UpdateType Driver -ForceInstall -IgnoreReboot
+        Get-WindowsUpdate -UpdateType Driver -Install -IgnoreReboot
     }
     #=======================================================================
     #	WindowsUpdate
@@ -107,7 +115,7 @@ function Start-AutopilotBridgeDemo {
         }
     }
     if ($WindowsUpdate) {
-        Get-WindowsUpdate -UpdateType Software -ForceInstall -IgnoreReboot
+        Get-WindowsUpdate -UpdateType Software -Install -IgnoreReboot
     }
     #=======================================================================
     #	Stop-Transcript

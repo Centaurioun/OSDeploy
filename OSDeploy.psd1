@@ -4,7 +4,7 @@
 ModuleToProcess = 'OSDeploy.psm1'
 
 # Version number of this module.
-ModuleVersion = '21.7.24.1'
+ModuleVersion = '21.7.25.1'
 
 # Supported PSEditions
 # CompatiblePSEditions = @()
@@ -47,7 +47,7 @@ PowerShellVersion = '5.0'
 
 # Modules that must be imported into the global environment prior to importing this module
 RequiredModules = @(
-    @{ModuleName = 'OSD'; ModuleVersion = '21.6.22.1'; Guid = '9fe5b9b6-0224-4d87-9018-a8978529f6f5'}
+    @{ModuleName = 'OSD'; ModuleVersion = '21.7.25.1'; Guid = '9fe5b9b6-0224-4d87-9018-a8978529f6f5'}
 )
 
 # Assemblies that must be loaded prior to importing this module
