@@ -4,7 +4,7 @@
 ModuleToProcess = 'OSDeploy.psm1'
 
 # Version number of this module.
-ModuleVersion = '21.6.25.5'
+ModuleVersion = '21.7.24.1'
 
 # Supported PSEditions
 # CompatiblePSEditions = @()
@@ -13,23 +13,22 @@ ModuleVersion = '21.6.25.5'
 GUID = '136973e7-64da-494b-bf2d-38d4564bb8f5'
 
 # Author of this module
-Author = 'David Segura'
+Author = 'David Segura @SeguraOSD'
 
 # Company or vendor of this module
-CompanyName = 'OSDeploy'
+CompanyName = 'osdeploy.com'
 
 # Copyright statement for this module
 Copyright = '(c) 2021 David Segura osdeploy.com. All rights reserved.'
 
 # Description of the functionality provided by this module
 Description = @'
+OSDeploy PowerShell Module
 https://osdeploy.osdeploy.com/
-
-OSDeploy PowerShell Module is a collection of Random
 '@
 
 # Minimum version of the Windows PowerShell engine required by this module
-# PowerShellVersion = ''
+PowerShellVersion = '5.0'
 
 # Name of the Windows PowerShell host required by this module
 # PowerShellHostName = ''
@@ -67,12 +66,7 @@ RequiredModules = @(
 # NestedModules = @()
 
 # Functions to export from this module
-FunctionsToExport = 'Copy-IsoToUsb',
-                    'Export-OSDCertificatesAsReg',
-                    'Get-DownLinks',
-                    'New-CAB',
-                    'Show-RegistryXML',
-                    'Start-DismImage'
+FunctionsToExport = 'Start-DismImage'
 
 # Cmdlets to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no cmdlets to export.
 CmdletsToExport = @()
@@ -94,26 +88,22 @@ AliasesToExport = @()
 
 # Private data to pass to the module specified in RootModule/ModuleToProcess. This may also contain a PSData hashtable with additional module metadata used by PowerShell.
 PrivateData = @{
-
     PSData = @{
-
         # Tags applied to this module. These help with module discovery in online galleries.
         Tags = @('OSD','OSDeploy')
 
         # A URL to the license for this module.
-        # LicenseUri = ''
+        LicenseUri = 'https://github.com/OSDeploy/OSDeploy/blob/master/LICENSE'
 
         # A URL to the main website for this project.
-        ProjectUri = 'https://osdeploy.osdeploy.com/'
+        ProjectUri = 'https://github.com/OSDeploy/OSDeploy'
 
         # A URL to an icon representing this module.
-        # IconUri = ''
+        IconUri = 'https://raw.githubusercontent.com/OSDeploy/OSDeploy/master/OSD.png'
 
         # ReleaseNotes of this module
         ReleaseNotes = 'https://osdeploy.osdeploy.com/release'
-
     } # End of PSData hashtable
-
 } # End of PrivateData hashtable
 
 # HelpInfo URI of this module
@@ -121,5 +111,4 @@ PrivateData = @{
 
 # Default prefix for commands exported from this module. Override the default prefix using Import-Module -Prefix.
 # DefaultCommandPrefix = ''
-
 }
