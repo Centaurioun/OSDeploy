@@ -1,10 +1,10 @@
 @{
 
 # Script module or binary module file associated with this manifest
-ModuleToProcess = 'OSDeploy.psm1'
+RootModule = 'OSDeploy.psm1'
 
 # Version number of this module.
-ModuleVersion = '21.7.25.1'
+ModuleVersion = '21.7.26.1'
 
 # Supported PSEditions
 # CompatiblePSEditions = @()
@@ -47,7 +47,7 @@ PowerShellVersion = '5.0'
 
 # Modules that must be imported into the global environment prior to importing this module
 RequiredModules = @(
-    @{ModuleName = 'OSD'; ModuleVersion = '21.7.25.1'; Guid = '9fe5b9b6-0224-4d87-9018-a8978529f6f5'}
+    @{ModuleName = 'OSD'; ModuleVersion = '21.7.26.1'; Guid = '9fe5b9b6-0224-4d87-9018-a8978529f6f5'}
 )
 
 # Assemblies that must be loaded prior to importing this module
@@ -66,7 +66,7 @@ RequiredModules = @(
 # NestedModules = @()
 
 # Functions to export from this module
-FunctionsToExport = 'Start-AutopilotBridgeDemo','Start-DismImage'
+FunctionsToExport = 'Start-DismImage'
 
 # Cmdlets to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no cmdlets to export.
 CmdletsToExport = @()
